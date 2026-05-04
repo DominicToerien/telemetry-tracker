@@ -131,3 +131,21 @@ Why:
 Consequences:
 - New user-facing behaviour should be added under `Features/{FeatureName}` first.
 - Infrastructure such as the LMU provider can remain outside the feature folder, but feature contracts and handlers should live with the feature.
+
+## 2026-05-04 - Supabase DbContext Uses .env Configuration With Conditional Registration
+
+Status:
+- accepted
+
+Decision:
+- Load local environment variables from a root `.env` file at startup and register `TelemetryTrackerDbContext` only when a Supabase connection string is actually configured.
+
+Why:
+- Keeps the `RE-6` slice tightly focused on connection setup instead of wider persistence work.
+- Preserves a runnable application even when local database credentials are not present yet.
+- Supports the intended developer workflow where secrets are supplied through `.env` instead of being committed into config files.
+
+Consequences:
+- The app can start without Supabase and will log that DbContext registration was skipped.
+- Future persistence slices can depend on a real EF Core DbContext without reworking startup configuration.
+- Features that require database access must handle the fact that local environments may not have Supabase configured yet.

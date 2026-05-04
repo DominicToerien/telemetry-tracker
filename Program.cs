@@ -1,5 +1,9 @@
 using telemetry_tracker.Features.TelemetryStatus;
+using telemetry_tracker.Infrastructure.Configuration;
+using telemetry_tracker.Infrastructure.Persistence;
 using telemetry_tracker.Telemetry.Lmu;
+
+DotEnvLoader.Load(Path.Combine(Directory.GetCurrentDirectory(), ".env"));
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -15,6 +19,12 @@ builder.Services.AddSingleton<ITelemetryStatusQueries>(static sp => sp.GetRequir
 builder.Services.AddSingleton<GetTelemetryStatusHandler>();
 builder.Services.AddSingleton<GetTelemetryDebugHandler>();
 builder.Services.AddHostedService<LmuTelemetryBackgroundService>();
+
+if (!builder.Services.TryAddTelemetryTrackerDbContext(builder.Configuration))
+{
+    Console.WriteLine("[Persistence] Supabase connection string not configured; DbContext registration skipped.");
+}
+
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();

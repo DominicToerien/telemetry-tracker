@@ -21,11 +21,14 @@ It should be updated whenever implementation meaningfully changes delivery statu
 - Initial unit and integration-style tests for LMU status/interoperability are in place
 - consolidated `agent/`, `agent/specs/`, and `agent/skills/` documentation structure is in place
 - `agent/skills/` index and entry-point-driven document loading flow are in place
+- Supabase EF Core package, DbContext shell, and startup registration hook are in place
+- Root `.env` loading is in place for local secret-based configuration
 
 ## In Progress
 
 - Expanding the project from LMU status verification into the broader lap-tracking and persistence workflow defined in `agent/plan.md`
 - Establishing the telemetry status feature as the architecture template for future slices
+- Establishing the persistence foundation so later lap-storage slices can target Supabase cleanly
 
 ## Not Started
 
@@ -34,7 +37,7 @@ It should be updated whenever implementation meaningfully changes delivery statu
 - lap buffering and lap boundary detection
 - lap summary calculation
 - lap trace generation
-- Supabase persistence
+- Supabase persistence beyond connection setup and DbContext registration
 - saved lap query endpoints
 - `/ask` AI analysis endpoint
 - broader vertical-slice refactor beyond the telemetry status slice
@@ -44,6 +47,7 @@ It should be updated whenever implementation meaningfully changes delivery statu
 - Keep the project runnable while evolving from telemetry-status foundation to the first complete telemetry-tracking slice.
 - Preserve LMU correctness while introducing source abstraction and tracking behaviour.
 - Keep the agent context structure stable so `read agent/entry-point.md` remains a dependable workflow starter.
+- Add infrastructure only when it unlocks the next slice cleanly and without widening scope.
 
 ## Known Constraints
 
