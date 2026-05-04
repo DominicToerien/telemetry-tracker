@@ -13,8 +13,8 @@ public sealed class LmuTelemetryBackgroundService : BackgroundService
     private readonly LmuTelemetryProvider _provider;
     private readonly ILogger<LmuTelemetryBackgroundService> _logger;
     private readonly LmuTelemetryOptions _options;
-    private int _lastConsoleLineLength;
-    private int? _telemetryConsoleRow;
+    private int _lastConsoleBlockHeight;
+    private bool _telemetryConsoleInitialized;
 
     public LmuTelemetryBackgroundService(
         LmuTelemetryProvider provider,
@@ -120,69 +120,146 @@ public sealed class LmuTelemetryBackgroundService : BackgroundService
         var snapshot = _provider.GetConsoleSnapshot();
         const string trackingState = "false";
 
-        string line;
-
         if (!snapshot.Connected)
         {
             var message = string.IsNullOrWhiteSpace(snapshot.Message)
                 ? "LMU shared memory unavailable"
                 : snapshot.Message;
 
-            line = $"[Telemetry] connected=false | tracking={trackingState} | packets/sec={packetsPerSecond} | message=\"{message}\"";
-            RenderTelemetryConsoleLine(line);
+            RenderTelemetryConsoleBlock(
+                [
+                    "[Telemetry]",
+                    "connected=false",
+                    $"tracking={trackingState}",
+                    $"packets/sec={packetsPerSecond}",
+                    $"message=\"{message}\""
+                ]);
             return;
         }
 
         if (snapshot.LapNumber is null)
         {
-            line =
-                $"[Telemetry] connected=true | tracking={trackingState} | packets/sec={packetsPerSecond} | " +
-                $"inRealtime={snapshot.InRealtime} | activeVehicles={snapshot.ActiveVehicles} | " +
-                $"playerHasVehicle={snapshot.PlayerHasVehicle} | playerVehicleIndex={snapshot.PlayerVehicleIndex} | " +
-                $"message=\"{snapshot.Message ?? "Connected, waiting for player telemetry."}\"";
-            RenderTelemetryConsoleLine(line);
+            RenderTelemetryConsoleBlock(
+                [
+                    "[Telemetry]",
+                    "connected=true",
+                    $"tracking={trackingState}",
+                    $"packets/sec={packetsPerSecond}",
+                    $"inRealtime={snapshot.InRealtime}",
+                    $"activeVehicles={snapshot.ActiveVehicles}",
+                    $"playerHasVehicle={snapshot.PlayerHasVehicle}",
+                    $"playerVehicleIndex={snapshot.PlayerVehicleIndex}",
+                    $"message=\"{snapshot.Message ?? "Connected, waiting for player telemetry."}\""
+                ]);
             return;
         }
 
-        line =
-            $"[Telemetry] connected=true | tracking={trackingState} | packets/sec={packetsPerSecond} | " +
-            $"lap={snapshot.LapNumber} | speed={Math.Round(snapshot.SpeedKph ?? 0.0, 1)} | " +
-            $"throttle={Math.Round((snapshot.Throttle ?? 0.0) * 100.0, 0)}% | " +
-            $"brake={Math.Round((snapshot.Brake ?? 0.0) * 100.0, 0)}% | " +
-            $"steering={Math.Round(snapshot.Steering ?? 0.0, 3)} | gear={snapshot.Gear} | " +
-            $"rpm={Math.Round(snapshot.Rpm ?? 0.0, 0)} | fuel={Math.Round(snapshot.FuelLiters ?? 0.0, 2)}L | " +
-            $"maxBrakePressure={Math.Round(snapshot.MaxBrakePressure ?? 0.0, 3)}";
-        RenderTelemetryConsoleLine(line);
+        RenderTelemetryConsoleBlock(
+            [
+                "[Telemetry]",
+                "connected=true",
+                $"tracking={trackingState}",
+                $"packets/sec={packetsPerSecond}",
+                $"lap={snapshot.LapNumber}",
+                $"speed={Math.Round(snapshot.SpeedKph ?? 0.0, 1)}",
+                $"throttle={Math.Round((snapshot.Throttle ?? 0.0) * 100.0, 0)}%",
+                $"brake={Math.Round((snapshot.Brake ?? 0.0) * 100.0, 0)}%",
+                $"steering={Math.Round(snapshot.Steering ?? 0.0, 3)}",
+                $"gear={snapshot.Gear}",
+                $"rpm={Math.Round(snapshot.Rpm ?? 0.0, 0)}",
+                $"fuel={Math.Round(snapshot.FuelLiters ?? 0.0, 2)}L",
+                $"maxBrakePressure={Math.Round(snapshot.MaxBrakePressure ?? 0.0, 3)}"
+            ]);
     }
 
-    private void RenderTelemetryConsoleLine(string line)
+    private void RenderTelemetryConsoleBlock(IReadOnlyList<string> segments)
     {
         if (Console.IsOutputRedirected)
         {
-            Console.WriteLine(line);
+            Console.WriteLine(string.Join(" | ", segments));
             return;
         }
 
-        _telemetryConsoleRow ??= Console.CursorTop;
-
         var windowWidth = Math.Max(Console.WindowWidth - 1, 20);
-        var displayLine = line.Length >= windowWidth
-            ? line[..(windowWidth - 1)]
-            : line;
-
-        var paddedLine = displayLine.PadRight(Math.Max(displayLine.Length, _lastConsoleLineLength));
+        var lines = WrapTelemetrySegments(segments, windowWidth);
+        var totalLines = Math.Max(lines.Count, _lastConsoleBlockHeight);
 
         try
         {
-            Console.SetCursorPosition(0, _telemetryConsoleRow.Value);
-            Console.Write(paddedLine);
-            _lastConsoleLineLength = paddedLine.Length;
+            if (_telemetryConsoleInitialized)
+            {
+                Console.Write('\r');
+                if (_lastConsoleBlockHeight > 1)
+                {
+                    Console.Write($"\u001b[{_lastConsoleBlockHeight - 1}A");
+                }
+            }
+
+            for (var i = 0; i < totalLines; i++)
+            {
+                var line = i < lines.Count
+                    ? lines[i].PadRight(windowWidth)
+                    : new string(' ', windowWidth);
+
+                Console.Write("\u001b[2K");
+                Console.Write(line);
+
+                if (i < totalLines - 1)
+                {
+                    Console.Write(Environment.NewLine);
+                }
+            }
+
+            _telemetryConsoleInitialized = true;
+            _lastConsoleBlockHeight = lines.Count;
         }
-        catch (ArgumentOutOfRangeException)
+        catch (IOException)
         {
-            Console.Write($"\r{paddedLine}");
-            _lastConsoleLineLength = paddedLine.Length;
+            Console.WriteLine(string.Join(" | ", segments));
+            _lastConsoleBlockHeight = lines.Count;
         }
+    }
+
+    private static List<string> WrapTelemetrySegments(IReadOnlyList<string> segments, int windowWidth)
+    {
+        var lines = new List<string>();
+        var currentLine = string.Empty;
+
+        foreach (var segment in segments)
+        {
+            var candidate = string.IsNullOrEmpty(currentLine)
+                ? segment
+                : $"{currentLine} | {segment}";
+
+            if (candidate.Length <= windowWidth)
+            {
+                currentLine = candidate;
+                continue;
+            }
+
+            if (!string.IsNullOrEmpty(currentLine))
+            {
+                lines.Add(currentLine);
+                currentLine = segment.Length <= windowWidth
+                    ? segment
+                    : segment[..windowWidth];
+                continue;
+            }
+
+            lines.Add(segment[..windowWidth]);
+        }
+
+        if (!string.IsNullOrEmpty(currentLine))
+        {
+            lines.Add(currentLine);
+        }
+
+        if (lines.Count == 0)
+        {
+            lines.Add(string.Empty);
+        }
+
+        return lines;
     }
 
     private void ValidateLmuPrerequisites()
