@@ -1,3 +1,0 @@
-﻿<Project>
-  <Import Project="..\build\telemetry-tracker.props" />
-</Project>
