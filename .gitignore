@@ -1,0 +1,37 @@
+# Build outputs
+bin/
+obj/
+
+# Test outputs
+TestResults/
+coverage/
+coverage-results/
+
+# User-specific files
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# Visual Studio / VS Code
+.vs/
+.vscode/
+
+# Rider / JetBrains
+.idea/
+
+# Logs
+*.log
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# NuGet
+packages/
+*.nupkg
+
+# Local environment / secrets
+.env
+.env.*
+secrets.json
