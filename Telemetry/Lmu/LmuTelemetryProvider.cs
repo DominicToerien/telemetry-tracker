@@ -70,7 +70,11 @@ public sealed class LmuTelemetryProvider : ITelemetryStatusQueries
                 return new LmuConsoleTelemetrySnapshot
                 {
                     Connected = false,
-                    Message = _state.Message
+                    Message = _state.Message,
+                    InRealtime = _state.ScoringInfo?.mInRealtime,
+                    ActiveVehicles = _state.ActiveVehicles,
+                    PlayerVehicleIndex = _state.PlayerVehicleIndex,
+                    PlayerHasVehicle = _state.PlayerHasVehicle
                 };
             }
 
@@ -82,7 +86,11 @@ public sealed class LmuTelemetryProvider : ITelemetryStatusQueries
                 return new LmuConsoleTelemetrySnapshot
                 {
                     Connected = true,
-                    Message = "Connected to LMU but player vehicle telemetry is not currently available."
+                    Message = "Connected to LMU but player vehicle telemetry is not currently available.",
+                    InRealtime = _state.ScoringInfo?.mInRealtime,
+                    ActiveVehicles = _state.ActiveVehicles,
+                    PlayerVehicleIndex = _state.PlayerVehicleIndex,
+                    PlayerHasVehicle = _state.PlayerHasVehicle
                 };
             }
 
@@ -101,6 +109,10 @@ public sealed class LmuTelemetryProvider : ITelemetryStatusQueries
             return new LmuConsoleTelemetrySnapshot
             {
                 Connected = true,
+                InRealtime = _state.ScoringInfo?.mInRealtime,
+                ActiveVehicles = _state.ActiveVehicles,
+                PlayerVehicleIndex = _state.PlayerVehicleIndex,
+                PlayerHasVehicle = _state.PlayerHasVehicle,
                 LapNumber = playerTelemetry.mLapNumber,
                 SpeedKph = speedKph,
                 Throttle = playerTelemetry.mFilteredThrottle,
@@ -173,7 +185,7 @@ public sealed class LmuTelemetryProvider : ITelemetryStatusQueries
                 {
                     ScoringInfo = snapshot.scoring.scoringInfo,
                     Vehicles = snapshot.scoring.vehScoringInfo.Take(vehicleCount).ToArray(),
-                    ResultsStream = DecodeResultsStream(snapshot.scoring.scoringStream, snapshot.scoring.scoringStreamSize),
+                    ResultsStream = DecodeResultsStream(snapshot.scoring.scoringStream, snapshot.scoring.GetScoringStreamSize()),
                     LastScoringUpdateUtc = capturedAtUtc
                 };
             }

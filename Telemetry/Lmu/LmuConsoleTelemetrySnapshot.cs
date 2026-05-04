@@ -4,6 +4,10 @@ internal sealed record LmuConsoleTelemetrySnapshot
 {
     public required bool Connected { get; init; }
     public string? Message { get; init; }
+    public bool? InRealtime { get; init; }
+    public byte? ActiveVehicles { get; init; }
+    public byte? PlayerVehicleIndex { get; init; }
+    public bool? PlayerHasVehicle { get; init; }
     public int? LapNumber { get; init; }
     public double? SpeedKph { get; init; }
     public double? Throttle { get; init; }
