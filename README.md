@@ -1,0 +1,197 @@
+# telemetry-tracker
+
+`telemetry-tracker` is a `net8.0` ASP.NET Core API for reading Le Mans Ultimate telemetry from shared memory and exposing service health/status over HTTP.
+
+The current implementation is intentionally narrow:
+- It reads LMU shared memory on Windows.
+- It keeps the latest copied scoring/telemetry snapshot in memory.
+- It exposes connection/debug status endpoints for bring-up and validation.
+- It does not yet include persistence, analytics, or a frontend.
+
+## Project Status
+
+This repository is in the LMU integration foundation phase.
+
+The durable project plan lives in [agent/plan.md](./agent/plan.md). Keep that file current as the project evolves so future work always has a reliable reference point.
+
+The persistent AI working context lives under [agent/](./agent/README.md), product-facing specifications live under [agent/specs/](./agent/specs/README.md), and project-specific task skills live under [agent/skills/](./agent/skills/README.md).
+
+## Requirements
+
+- .NET 8 SDK
+- Windows for live LMU shared-memory access
+- Le Mans Ultimate running if you want live connected telemetry
+
+Notes:
+- The API can still run on non-Windows platforms, but LMU shared memory will be reported as unsupported/disconnected.
+- The project currently defaults to a Linux Docker target for container tooling, but live LMU telemetry is a Windows-only runtime feature.
+
+## Quick Start
+
+1. Restore and build:
+
+```powershell
+dotnet build telemetry-tracker.csproj
+```
+
+2. Run the API:
+
+```powershell
+dotnet run --project telemetry-tracker.csproj
+```
+
+3. Open Swagger in development:
+
+- `https://localhost:<port>/swagger`
+
+4. Check telemetry status:
+
+- `GET /telemetry/status`
+- `GET /telemetry/debug`
+
+Example:
+
+```powershell
+Invoke-RestMethod http://127.0.0.1:5099/telemetry/status
+```
+
+If LMU is not running, the service should still start and return a disconnected status instead of crashing.
+
+## Configuration
+
+LMU reader settings live in `appsettings.json` under `LmuTelemetry`:
+
+```json
+"LmuTelemetry": {
+  "Enabled": true,
+  "RetryIntervalSeconds": 5,
+  "DebugLogging": false
+}
+```
+
+Fields:
+- `Enabled`: turns the LMU background reader on or off
+- `RetryIntervalSeconds`: retry delay when LMU shared memory is unavailable
+- `DebugLogging`: enables extra reader logging
+
+## API Endpoints
+
+### `GET /telemetry/status`
+
+Returns the current LMU provider state, including:
+- whether the provider is enabled
+- whether the current platform supports LMU shared memory
+- whether the service is currently connected
+- timestamps for the last successful scoring/telemetry reads
+- the last known shared-memory event
+- the current disconnected/warning message, if any
+
+### `GET /telemetry/debug`
+
+Returns a lightweight debug view of the latest copied snapshot metadata, such as:
+- current track name
+- player name
+- session id
+- active vehicle count
+- player vehicle availability
+
+This endpoint is for bring-up/debugging and should not be treated as a stable public telemetry contract yet.
+
+## Architecture Overview
+
+Main flow:
+
+1. `LmuTelemetryBackgroundService` starts with the API.
+2. On Windows, it attempts to open the LMU event, file mapping, and shared lock objects.
+3. When LMU signals an update, the service copies the shared-memory layout into managed structs.
+4. `LmuTelemetryProvider` stores the latest thread-safe in-memory status/snapshot.
+5. Controllers return provider state via HTTP.
+
+Important files:
+- [agent/README.md](/abs/path/c:/Users/toeri/source/repos/telemetry-tracker/agent/README.md)
+- [agent/entry-point.md](/abs/path/c:/Users/toeri/source/repos/telemetry-tracker/agent/entry-point.md)
+- [agent/specs/README.md](/abs/path/c:/Users/toeri/source/repos/telemetry-tracker/agent/specs/README.md)
+- [agent/specs/product.md](/abs/path/c:/Users/toeri/source/repos/telemetry-tracker/agent/specs/product.md)
+- [agent/specs/plan.md](/abs/path/c:/Users/toeri/source/repos/telemetry-tracker/agent/specs/plan.md)
+- [agent/skills/README.md](/abs/path/c:/Users/toeri/source/repos/telemetry-tracker/agent/skills/README.md)
+- [agent/plan.md](/abs/path/c:/Users/toeri/source/repos/telemetry-tracker/agent/plan.md)
+- [Program.cs](/abs/path/c:/Users/toeri/source/repos/telemetry-tracker/Program.cs)
+- [Controllers/TelemetryController.cs](/abs/path/c:/Users/toeri/source/repos/telemetry-tracker/Controllers/TelemetryController.cs)
+- [Telemetry/Lmu/LmuTelemetryBackgroundService.cs](/abs/path/c:/Users/toeri/source/repos/telemetry-tracker/Telemetry/Lmu/LmuTelemetryBackgroundService.cs)
+- [Telemetry/Lmu/LmuTelemetryProvider.cs](/abs/path/c:/Users/toeri/source/repos/telemetry-tracker/Telemetry/Lmu/LmuTelemetryProvider.cs)
+- [Telemetry/Lmu/Interop/LmuInteropModels.cs](/abs/path/c:/Users/toeri/source/repos/telemetry-tracker/Telemetry/Lmu/Interop/LmuInteropModels.cs)
+
+## LMU SDK Rules
+
+The LMU headers under `references/lmu-sdks/` are the single source of truth for integration details.
+
+Do not:
+- invent telemetry fields
+- rename SDK fields in the interop layer
+- change memory layout assumptions casually
+- assume pointer-bearing scoring fields can be used directly after mapping
+
+Always:
+- verify field names and types against the headers
+- preserve 4-byte packing
+- treat the shared-memory read/copy flow in the SDK as authoritative
+- keep Windows interop isolated to the LMU integration boundary
+
+Reference headers:
+- `references/lmu-sdks/SharedMemoryInterface.hpp`
+- `references/lmu-sdks/InternalsPlugin.hpp`
+- `references/lmu-sdks/PluginObjects.hpp`
+
+## Failure Handling Expectations
+
+If LMU shared memory is unavailable:
+- the API must still start
+- the process must not crash
+- the service must log a clear warning
+- `/telemetry/status` must report disconnected state
+
+If the app is running on a non-Windows OS:
+- the API must still start
+- LMU telemetry must report unsupported/disconnected
+
+## Tests
+
+Build the app:
+
+```powershell
+dotnet build telemetry-tracker.csproj
+```
+
+Build tests:
+
+```powershell
+dotnet build telemetry-tracker.Tests/telemetry-tracker.Tests.csproj
+```
+
+Run tests:
+
+```powershell
+dotnet test telemetry-tracker.Tests/telemetry-tracker.Tests.csproj --no-build
+```
+
+Current tests cover:
+- key interop layout sizes
+- disconnected default provider behavior
+- scoring-only update handling
+- telemetry-only update handling
+- status endpoint response shape
+
+## Developer Notes
+
+- Keep `agent/plan.md` updated when scope or architecture changes.
+- Keep `agent/` and `agent/specs/` aligned when the project direction changes.
+- Prefer adding new behavior behind the existing provider/service boundary instead of pushing Win32 concerns into controllers.
+- Avoid exposing raw LMU structs directly as a long-term public API unless that choice is intentional and documented.
+- If you touch interop models, update tests first or alongside the change.
+
+## Next Likely Steps
+
+- Add a stable telemetry snapshot API contract
+- Add persistence/history storage
+- Add richer validation for struct layouts and copy semantics
+- Add derived metrics and session analytics

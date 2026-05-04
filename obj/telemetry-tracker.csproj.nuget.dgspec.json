@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "C:\\Users\\toeri\\source\\repos\\telemetry-tracker\\telemetry-tracker.csproj": {}
+    "c:\\Users\\toeri\\source\\repos\\telemetry-tracker\\telemetry-tracker.csproj": {}
   },
   "projects": {
-    "C:\\Users\\toeri\\source\\repos\\telemetry-tracker\\telemetry-tracker.csproj": {
+    "c:\\Users\\toeri\\source\\repos\\telemetry-tracker\\telemetry-tracker.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Users\\toeri\\source\\repos\\telemetry-tracker\\telemetry-tracker.csproj",
+        "projectUniqueName": "c:\\Users\\toeri\\source\\repos\\telemetry-tracker\\telemetry-tracker.csproj",
         "projectName": "telemetry-tracker",
-        "projectPath": "C:\\Users\\toeri\\source\\repos\\telemetry-tracker\\telemetry-tracker.csproj",
+        "projectPath": "c:\\Users\\toeri\\source\\repos\\telemetry-tracker\\telemetry-tracker.csproj",
         "packagesPath": "C:\\Users\\toeri\\.nuget\\packages\\",
-        "outputPath": "C:\\Users\\toeri\\source\\repos\\telemetry-tracker\\obj\\",
+        "outputPath": "c:\\Users\\toeri\\source\\repos\\telemetry-tracker\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
           "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
