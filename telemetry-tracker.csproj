@@ -4,6 +4,7 @@
     <TargetFramework>net8.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <RootNamespace>telemetry_tracker</RootNamespace>
     <UserSecretsId>f7dd5d1d-9cc6-4158-af88-c854f8fe4c12</UserSecretsId>
     <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
@@ -13,6 +14,16 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.21.0" />
     <PackageReference Include="Swashbuckle.AspNetCore" Version="6.6.2" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="telemetry-tracker.Tests" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Remove="telemetry-tracker.Tests\**\*.cs" />
+    <EmbeddedResource Remove="telemetry-tracker.Tests\**\*" />
+    <None Remove="telemetry-tracker.Tests\**\*" />
   </ItemGroup>
 
 </Project>
