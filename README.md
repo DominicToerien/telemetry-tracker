@@ -6,6 +6,7 @@ The current implementation is intentionally narrow:
 - It reads LMU shared memory on Windows.
 - It keeps the latest copied scoring/telemetry snapshot in memory.
 - It exposes connection/debug status endpoints for bring-up and validation.
+- It exposes that telemetry status through a dedicated `Features/TelemetryStatus` vertical slice.
 - It does not yet include persistence, analytics, or a frontend.
 
 ## Project Status
@@ -105,7 +106,7 @@ Main flow:
 2. On Windows, it attempts to open the LMU event, file mapping, and shared lock objects.
 3. When LMU signals an update, the service copies the shared-memory layout into managed structs.
 4. `LmuTelemetryProvider` stores the latest thread-safe in-memory status/snapshot.
-5. Controllers return provider state via HTTP.
+5. The `Features/TelemetryStatus` slice exposes thin query endpoints over that state.
 
 Important files:
 - [agent/README.md](/abs/path/c:/Users/toeri/source/repos/telemetry-tracker/agent/README.md)
@@ -115,8 +116,10 @@ Important files:
 - [agent/specs/plan.md](/abs/path/c:/Users/toeri/source/repos/telemetry-tracker/agent/specs/plan.md)
 - [agent/skills/README.md](/abs/path/c:/Users/toeri/source/repos/telemetry-tracker/agent/skills/README.md)
 - [agent/plan.md](/abs/path/c:/Users/toeri/source/repos/telemetry-tracker/agent/plan.md)
+- [Features/TelemetryStatus/Endpoint.cs](/abs/path/c:/Users/toeri/source/repos/telemetry-tracker/Features/TelemetryStatus/Endpoint.cs)
+- [Features/TelemetryStatus/GetTelemetryStatusHandler.cs](/abs/path/c:/Users/toeri/source/repos/telemetry-tracker/Features/TelemetryStatus/GetTelemetryStatusHandler.cs)
+- [Features/TelemetryStatus/GetTelemetryDebugHandler.cs](/abs/path/c:/Users/toeri/source/repos/telemetry-tracker/Features/TelemetryStatus/GetTelemetryDebugHandler.cs)
 - [Program.cs](/abs/path/c:/Users/toeri/source/repos/telemetry-tracker/Program.cs)
-- [Controllers/TelemetryController.cs](/abs/path/c:/Users/toeri/source/repos/telemetry-tracker/Controllers/TelemetryController.cs)
 - [Telemetry/Lmu/LmuTelemetryBackgroundService.cs](/abs/path/c:/Users/toeri/source/repos/telemetry-tracker/Telemetry/Lmu/LmuTelemetryBackgroundService.cs)
 - [Telemetry/Lmu/LmuTelemetryProvider.cs](/abs/path/c:/Users/toeri/source/repos/telemetry-tracker/Telemetry/Lmu/LmuTelemetryProvider.cs)
 - [Telemetry/Lmu/Interop/LmuInteropModels.cs](/abs/path/c:/Users/toeri/source/repos/telemetry-tracker/Telemetry/Lmu/Interop/LmuInteropModels.cs)
@@ -185,6 +188,7 @@ Current tests cover:
 
 - Keep `agent/plan.md` updated when scope or architecture changes.
 - Keep `agent/` and `agent/specs/` aligned when the project direction changes.
+- New user-facing behaviour should prefer `Features/{FeatureName}` slices with thin endpoints and explicit handlers.
 - Prefer adding new behavior behind the existing provider/service boundary instead of pushing Win32 concerns into controllers.
 - Avoid exposing raw LMU structs directly as a long-term public API unless that choice is intentional and documented.
 - If you touch interop models, update tests first or alongside the change.

@@ -16,7 +16,7 @@ It should be updated whenever implementation meaningfully changes delivery statu
 - ASP.NET Core API scaffold is in place
 - Console/debug-friendly logging setup is in place
 - LMU shared-memory reader foundation is implemented
-- Telemetry status and debug endpoints are implemented
+- Telemetry status and debug endpoints are implemented as a `Features/TelemetryStatus` vertical slice
 - LMU disconnected startup behaviour is handled without crashing
 - Initial unit and integration-style tests for LMU status/interoperability are in place
 - consolidated `agent/`, `agent/specs/`, and `agent/skills/` documentation structure is in place
@@ -25,6 +25,7 @@ It should be updated whenever implementation meaningfully changes delivery statu
 ## In Progress
 
 - Expanding the project from LMU status verification into the broader lap-tracking and persistence workflow defined in `agent/plan.md`
+- Establishing the telemetry status feature as the architecture template for future slices
 
 ## Not Started
 
@@ -36,7 +37,7 @@ It should be updated whenever implementation meaningfully changes delivery statu
 - Supabase persistence
 - saved lap query endpoints
 - `/ask` AI analysis endpoint
-- full vertical-slice feature layout refactor
+- broader vertical-slice refactor beyond the telemetry status slice
 
 ## Current Focus
 

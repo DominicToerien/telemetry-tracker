@@ -114,3 +114,20 @@ Why:
 Consequences:
 - `agent/entry-point.md` must stay aligned with the real repository structure.
 - New agent-facing markdown files should be added under `agent/`, `agent/skills/`, or `agent/specs/` intentionally, not ad hoc.
+
+## 2026-05-04 - Telemetry Status Refactored Into A Vertical Slice
+
+Status:
+- accepted
+
+Decision:
+- Move the telemetry status HTTP surface from a controller-first shape into `Features/TelemetryStatus` with explicit query handlers and minimal endpoints.
+
+Why:
+- The target project architecture is Vertical Slice Architecture plus CQRS.
+- The earlier controller plus shared DTO structure was functional but still organized more by technical layer than by feature.
+- This creates a concrete implementation pattern for future slices such as tracking, laps, and ask.
+
+Consequences:
+- New user-facing behaviour should be added under `Features/{FeatureName}` first.
+- Infrastructure such as the LMU provider can remain outside the feature folder, but feature contracts and handlers should live with the feature.

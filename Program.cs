@@ -1,4 +1,4 @@
-using telemetry_tracker.Telemetry;
+using telemetry_tracker.Features.TelemetryStatus;
 using telemetry_tracker.Telemetry.Lmu;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -9,10 +9,11 @@ builder.Logging.ClearProviders();
 builder.Logging.AddConsole();
 builder.Logging.AddDebug();
 
-builder.Services.AddControllers();
 builder.Services.Configure<LmuTelemetryOptions>(builder.Configuration.GetSection(LmuTelemetryOptions.SectionName));
 builder.Services.AddSingleton<LmuTelemetryProvider>();
-builder.Services.AddSingleton<ITelemetryProvider>(static sp => sp.GetRequiredService<LmuTelemetryProvider>());
+builder.Services.AddSingleton<ITelemetryStatusQueries>(static sp => sp.GetRequiredService<LmuTelemetryProvider>());
+builder.Services.AddSingleton<GetTelemetryStatusHandler>();
+builder.Services.AddSingleton<GetTelemetryDebugHandler>();
 builder.Services.AddHostedService<LmuTelemetryBackgroundService>();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
@@ -31,7 +32,7 @@ app.UseHttpsRedirection();
 
 app.UseAuthorization();
 
-app.MapControllers();
+app.MapTelemetryStatusEndpoints();
 
 app.Run();
 

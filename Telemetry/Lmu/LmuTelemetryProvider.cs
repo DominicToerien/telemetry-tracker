@@ -1,9 +1,10 @@
 using System.Text;
+using telemetry_tracker.Features.TelemetryStatus;
 using telemetry_tracker.Telemetry.Lmu.Interop;
 
 namespace telemetry_tracker.Telemetry.Lmu;
 
-public sealed class LmuTelemetryProvider : ITelemetryProvider
+public sealed class LmuTelemetryProvider : ITelemetryStatusQueries
 {
     private readonly object _gate = new();
     private LmuTelemetryState _state;
@@ -19,11 +20,11 @@ public sealed class LmuTelemetryProvider : ITelemetryProvider
         };
     }
 
-    public TelemetryStatusDto GetStatus()
+    public TelemetryStatusResponse GetStatus()
     {
         lock (_gate)
         {
-            return new TelemetryStatusDto
+            return new TelemetryStatusResponse
             {
                 Provider = "lmu",
                 Enabled = _state.Enabled,
@@ -38,11 +39,11 @@ public sealed class LmuTelemetryProvider : ITelemetryProvider
         }
     }
 
-    public TelemetryDebugDto GetDebugSnapshot()
+    public TelemetryDebugResponse GetDebugSnapshot()
     {
         lock (_gate)
         {
-            return new TelemetryDebugDto
+            return new TelemetryDebugResponse
             {
                 Provider = "lmu",
                 Connected = _state.Connected,
