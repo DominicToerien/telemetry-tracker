@@ -6,6 +6,7 @@ namespace telemetry_tracker.Telemetry.Lmu;
 public sealed class LmuTelemetryBackgroundService : BackgroundService
 {
     private static readonly TimeSpan EventWaitTimeout = TimeSpan.FromSeconds(1);
+    private static readonly TimeSpan ConsoleOutputInterval = TimeSpan.FromSeconds(1);
 
     private readonly LmuTelemetryProvider _provider;
     private readonly ILogger<LmuTelemetryBackgroundService> _logger;
@@ -41,6 +42,8 @@ public sealed class LmuTelemetryBackgroundService : BackgroundService
         var staleAfter = TimeSpan.FromSeconds(Math.Max(_options.RetryInterval.TotalSeconds * 2, 10));
         var lastWarning = string.Empty;
         var loggedConnected = false;
+        var packetsSinceConsoleOutput = 0;
+        var lastConsoleOutputUtc = DateTimeOffset.UtcNow;
 
         while (!stoppingToken.IsCancellationRequested)
         {
@@ -59,14 +62,20 @@ public sealed class LmuTelemetryBackgroundService : BackgroundService
                     {
                         var snapshot = session.CopySnapshot();
                         _provider.ApplySharedMemorySnapshot(snapshot, DateTimeOffset.UtcNow);
+                        packetsSinceConsoleOutput++;
                         lastWarning = string.Empty;
 
                         if (_options.DebugLogging)
                         {
                             _logger.LogDebug("Processed LMU shared-memory update.");
                         }
+                    }
 
-                        continue;
+                    if (DateTimeOffset.UtcNow - lastConsoleOutputUtc >= ConsoleOutputInterval)
+                    {
+                        WriteTelemetryConsoleLine(packetsSinceConsoleOutput);
+                        packetsSinceConsoleOutput = 0;
+                        lastConsoleOutputUtc = DateTimeOffset.UtcNow;
                     }
 
                     var status = _provider.GetStatus();
@@ -96,5 +105,49 @@ public sealed class LmuTelemetryBackgroundService : BackgroundService
                 await Task.Delay(_options.RetryInterval, stoppingToken);
             }
         }
+    }
+
+    private void WriteTelemetryConsoleLine(int packetsPerSecond)
+    {
+        var snapshot = _provider.GetConsoleSnapshot();
+        const string trackingState = "false";
+
+        if (!snapshot.Connected)
+        {
+            var message = string.IsNullOrWhiteSpace(snapshot.Message)
+                ? "LMU shared memory unavailable"
+                : snapshot.Message;
+
+            _logger.LogInformation(
+                "[Telemetry] connected=false | tracking={Tracking} | packets/sec={PacketsPerSecond} | message=\"{Message}\"",
+                trackingState,
+                packetsPerSecond,
+                message);
+            return;
+        }
+
+        if (snapshot.LapNumber is null)
+        {
+            _logger.LogInformation(
+                "[Telemetry] connected=true | tracking={Tracking} | packets/sec={PacketsPerSecond} | message=\"{Message}\"",
+                trackingState,
+                packetsPerSecond,
+                snapshot.Message ?? "Connected, waiting for player telemetry.");
+            return;
+        }
+
+        _logger.LogInformation(
+            "[Telemetry] connected=true | tracking={Tracking} | packets/sec={PacketsPerSecond} | lap={Lap} | speed={SpeedKph} | throttle={ThrottlePercent}% | brake={BrakePercent}% | steering={Steering} | gear={Gear} | rpm={Rpm} | fuel={Fuel}L | maxBrakePressure={MaxBrakePressure}",
+            trackingState,
+            packetsPerSecond,
+            snapshot.LapNumber,
+            Math.Round(snapshot.SpeedKph ?? 0.0, 1),
+            Math.Round((snapshot.Throttle ?? 0.0) * 100.0, 0),
+            Math.Round((snapshot.Brake ?? 0.0) * 100.0, 0),
+            Math.Round(snapshot.Steering ?? 0.0, 3),
+            snapshot.Gear,
+            Math.Round(snapshot.Rpm ?? 0.0, 0),
+            Math.Round(snapshot.FuelLiters ?? 0.0, 2),
+            Math.Round(snapshot.MaxBrakePressure ?? 0.0, 3));
     }
 }

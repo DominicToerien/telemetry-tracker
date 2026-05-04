@@ -17,6 +17,7 @@ It should be updated whenever implementation meaningfully changes delivery statu
 - Console/debug-friendly logging setup is in place
 - LMU shared-memory reader foundation is implemented
 - Telemetry status and debug endpoints are implemented as a `Features/TelemetryStatus` vertical slice
+- Live once-per-second console telemetry output is implemented for LMU verification (RE-5)
 - LMU disconnected startup behaviour is handled without crashing
 - Initial unit and integration-style tests for LMU status/interoperability are in place
 - consolidated `agent/`, `agent/specs/`, and `agent/skills/` documentation structure is in place
@@ -26,6 +27,7 @@ It should be updated whenever implementation meaningfully changes delivery statu
 
 - Expanding the project from LMU status verification into the broader lap-tracking and persistence workflow defined in `agent/plan.md`
 - Establishing the telemetry status feature as the architecture template for future slices
+- Expanding telemetry verification with live console output to prove real in-game data flow
 
 ## Not Started
 
@@ -38,6 +40,7 @@ It should be updated whenever implementation meaningfully changes delivery statu
 - saved lap query endpoints
 - `/ask` AI analysis endpoint
 - broader vertical-slice refactor beyond the telemetry status slice
+- tracking start/stop state and endpoints
 
 ## Current Focus
 
