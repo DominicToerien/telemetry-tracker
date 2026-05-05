@@ -10,6 +10,7 @@ The service should:
 - allow the user to explicitly start and stop telemetry tracking
 - store lap-level summaries and detailed lap telemetry traces in Supabase Postgres
 - expose an API for querying saved laps and asking AI-assisted driving-performance questions
+- support both local telemetry collection and hosted ingestion/query capabilities from one codebase
 
 The focus is on delivering a clean, working vertical slice of functionality with strong architectural foundations and limited scope.
 
@@ -35,6 +36,21 @@ Do not introduce:
 - frontend/UI
 - authentication or authorization unless explicitly requested
 
+## Runtime Roles
+
+The same project supports two roles:
+
+- Collector role (local user machine):
+  - reads LMU shared memory locally
+  - performs tracking and lap packaging
+  - sends telemetry/lap payloads to hosted endpoints
+- Server role (hosted):
+  - accepts ingestion payloads
+  - persists summaries and traces
+  - serves query and AI endpoints
+
+The collector must run locally because LMU shared memory is local-process accessible.
+
 ## Operational Model
 
 The application:
@@ -44,6 +60,7 @@ The application:
 - only persists telemetry while tracking is explicitly active
 - saves one summary and one trace per completed lap
 - exposes APIs for tracking, telemetry status, laps, and AI analysis
+- keeps database credentials server-side only
 
 ## Architectural Direction
 
@@ -95,6 +112,13 @@ Requirements:
 - follow the shared-memory copy pattern from the headers
 - handle LMU absence gracefully
 - do not crash if LMU is not running
+
+## Security and Configuration
+
+- Never commit real Supabase/Postgres connection strings.
+- Collector runtime should not require direct DB credentials.
+- Hosted server runtime owns persistence secrets.
+- App should remain runnable without DB config, while clearly reporting persistence-disabled status.
 
 ## Desired Outcome
 

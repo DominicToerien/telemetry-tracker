@@ -1,4 +1,5 @@
 using System.Runtime.InteropServices;
+using System.Buffers.Binary;
 
 namespace telemetry_tracker.Telemetry.Lmu.Interop;
 
@@ -489,13 +490,27 @@ internal struct SharedMemoryPathData
 internal struct SharedMemoryScoringData
 {
     public ScoringInfoV01 scoringInfo;
-    public nuint scoringStreamSize;
+
+    // LMU's pack(4) layout leaves 12 bytes here in practice: size_t plus trailing padding
+    // before the fixed vehicle array begins. Keeping this SDK-shaped prevents telemetry offset drift.
+    [MarshalAs(UnmanagedType.ByValArray, SizeConst = 12)]
+    public byte[] scoringStreamSizeRaw;
 
     [MarshalAs(UnmanagedType.ByValArray, SizeConst = SharedMemoryInteropConstants.MaxVehicles)]
     public VehicleScoringInfoV01[] vehScoringInfo;
 
     [MarshalAs(UnmanagedType.ByValArray, SizeConst = SharedMemoryInteropConstants.ScoringStreamLength)]
     public byte[] scoringStream;
+
+    public readonly nuint GetScoringStreamSize()
+    {
+        if (scoringStreamSizeRaw is null || scoringStreamSizeRaw.Length < 8)
+        {
+            return 0;
+        }
+
+        return (nuint)BinaryPrimitives.ReadUInt64LittleEndian(scoringStreamSizeRaw.AsSpan(0, 8));
+    }
 }
 
 [StructLayout(LayoutKind.Sequential, Pack = 4)]

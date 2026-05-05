@@ -9,6 +9,7 @@
 - Use `MockTelemetrySource` before LMU integration when building the larger telemetry pipeline.
 - Do not persist raw telemetry continuously.
 - Follow Vertical Slice Architecture plus CQRS.
+- Keep Supabase/Postgres credentials server-side only; do not require DB secrets in local collector runtime.
 - Update `agent/decisions.md` when a meaningful architectural or scope decision is made.
 - Update `agent/progress.md` when project status meaningfully changes.
 

@@ -27,7 +27,7 @@ internal sealed unsafe class SharedMemoryLock : IDisposable
 
         for (var spins = 0; spins < maxSpins; spins++)
         {
-            if (Win32Native.InterlockedCompareExchange(&_dataPtr->busy, 1, 0) == 0)
+            if (Interlocked.CompareExchange(ref Unsafe.AsRef<int>(&_dataPtr->busy), 1, 0) == 0)
             {
                 return true;
             }
@@ -35,12 +35,12 @@ internal sealed unsafe class SharedMemoryLock : IDisposable
             Thread.SpinWait(1);
         }
 
-        Win32Native.InterlockedIncrement(&_dataPtr->waiters);
+        Interlocked.Increment(ref Unsafe.AsRef<int>(&_dataPtr->waiters));
         try
         {
             while (true)
             {
-                if (Win32Native.InterlockedCompareExchange(&_dataPtr->busy, 1, 0) == 0)
+                if (Interlocked.CompareExchange(ref Unsafe.AsRef<int>(&_dataPtr->busy), 1, 0) == 0)
                 {
                     return true;
                 }
@@ -59,13 +59,13 @@ internal sealed unsafe class SharedMemoryLock : IDisposable
         }
         finally
         {
-            Win32Native.InterlockedDecrement(&_dataPtr->waiters);
+            Interlocked.Decrement(ref Unsafe.AsRef<int>(&_dataPtr->waiters));
         }
     }
 
     public void Unlock()
     {
-        Win32Native.InterlockedExchange(&_dataPtr->busy, 0);
+        Interlocked.Exchange(ref Unsafe.AsRef<int>(&_dataPtr->busy), 0);
         if (Volatile.Read(ref Unsafe.AsRef<int>(&_dataPtr->waiters)) > 0)
         {
             _ = Win32Native.SetEvent(_waitEventHandle);

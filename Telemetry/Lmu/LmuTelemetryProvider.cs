@@ -61,6 +61,71 @@ public sealed class LmuTelemetryProvider : ITelemetryStatusQueries
         }
     }
 
+    internal LmuConsoleTelemetrySnapshot GetConsoleSnapshot()
+    {
+        lock (_gate)
+        {
+            if (!_state.Connected)
+            {
+                return new LmuConsoleTelemetrySnapshot
+                {
+                    Connected = false,
+                    Message = _state.Message,
+                    InRealtime = _state.ScoringInfo?.mInRealtime,
+                    ActiveVehicles = _state.ActiveVehicles,
+                    PlayerVehicleIndex = _state.PlayerVehicleIndex,
+                    PlayerHasVehicle = _state.PlayerHasVehicle
+                };
+            }
+
+            if (_state.PlayerHasVehicle != true ||
+                _state.PlayerVehicleIndex is null ||
+                _state.TelemetryVehicles is null ||
+                _state.PlayerVehicleIndex.Value >= _state.TelemetryVehicles.Length)
+            {
+                return new LmuConsoleTelemetrySnapshot
+                {
+                    Connected = true,
+                    Message = "Connected to LMU but player vehicle telemetry is not currently available.",
+                    InRealtime = _state.ScoringInfo?.mInRealtime,
+                    ActiveVehicles = _state.ActiveVehicles,
+                    PlayerVehicleIndex = _state.PlayerVehicleIndex,
+                    PlayerHasVehicle = _state.PlayerHasVehicle
+                };
+            }
+
+            var playerTelemetry = _state.TelemetryVehicles[_state.PlayerVehicleIndex.Value];
+            var speedKph = Math.Sqrt(
+                (playerTelemetry.mLocalVel.x * playerTelemetry.mLocalVel.x) +
+                (playerTelemetry.mLocalVel.y * playerTelemetry.mLocalVel.y) +
+                (playerTelemetry.mLocalVel.z * playerTelemetry.mLocalVel.z)) * 3.6d;
+
+            double? maxBrakePressure = null;
+            if (playerTelemetry.mWheel is { Length: > 0 })
+            {
+                maxBrakePressure = playerTelemetry.mWheel.Max(static wheel => wheel.mBrakePressure);
+            }
+
+            return new LmuConsoleTelemetrySnapshot
+            {
+                Connected = true,
+                InRealtime = _state.ScoringInfo?.mInRealtime,
+                ActiveVehicles = _state.ActiveVehicles,
+                PlayerVehicleIndex = _state.PlayerVehicleIndex,
+                PlayerHasVehicle = _state.PlayerHasVehicle,
+                LapNumber = playerTelemetry.mLapNumber,
+                SpeedKph = speedKph,
+                Throttle = playerTelemetry.mFilteredThrottle,
+                Brake = playerTelemetry.mFilteredBrake,
+                Steering = playerTelemetry.mFilteredSteering,
+                Gear = playerTelemetry.mGear,
+                Rpm = playerTelemetry.mEngineRPM,
+                FuelLiters = playerTelemetry.mFuel,
+                MaxBrakePressure = maxBrakePressure
+            };
+        }
+    }
+
     internal void SetEnabled(bool enabled)
     {
         lock (_gate)
@@ -120,7 +185,7 @@ public sealed class LmuTelemetryProvider : ITelemetryStatusQueries
                 {
                     ScoringInfo = snapshot.scoring.scoringInfo,
                     Vehicles = snapshot.scoring.vehScoringInfo.Take(vehicleCount).ToArray(),
-                    ResultsStream = DecodeResultsStream(snapshot.scoring.scoringStream, snapshot.scoring.scoringStreamSize),
+                    ResultsStream = DecodeResultsStream(snapshot.scoring.scoringStream, snapshot.scoring.GetScoringStreamSize()),
                     LastScoringUpdateUtc = capturedAtUtc
                 };
             }

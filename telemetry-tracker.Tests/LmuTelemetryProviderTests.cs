@@ -11,10 +11,13 @@ public sealed class LmuTelemetryProviderTests
         var provider = new LmuTelemetryProvider();
 
         var status = provider.GetStatus();
+        var consoleSnapshot = provider.GetConsoleSnapshot();
 
         Assert.Equal("lmu", status.Provider);
         Assert.False(status.Connected);
         Assert.NotNull(status.Message);
+        Assert.False(consoleSnapshot.Connected);
+        Assert.NotNull(consoleSnapshot.Message);
     }
 
     [Fact]
@@ -62,6 +65,44 @@ public sealed class LmuTelemetryProviderTests
         Assert.NotNull(status.LastTelemetryUpdateUtc);
         Assert.Equal(3, debug.ActiveVehicles);
         Assert.False(debug.PlayerHasVehicle);
+    }
+
+    [Fact]
+    public void GetConsoleSnapshot_UsesPlayerTelemetryValuesWhenAvailable()
+    {
+        var provider = new LmuTelemetryProvider();
+        var snapshot = CreateSnapshot();
+        snapshot.generic.events[(int)SharedMemoryEvent.SME_UPDATE_TELEMETRY] = 1;
+        snapshot.telemetry.activeVehicles = 1;
+        snapshot.telemetry.playerVehicleIdx = 0;
+        snapshot.telemetry.playerHasVehicle = true;
+
+        snapshot.telemetry.telemInfo[0].mLapNumber = 7;
+        snapshot.telemetry.telemInfo[0].mFilteredThrottle = 0.83;
+        snapshot.telemetry.telemInfo[0].mFilteredBrake = 0.05;
+        snapshot.telemetry.telemInfo[0].mFilteredSteering = -0.2;
+        snapshot.telemetry.telemInfo[0].mGear = 5;
+        snapshot.telemetry.telemInfo[0].mEngineRPM = 8120;
+        snapshot.telemetry.telemInfo[0].mFuel = 42.5;
+        snapshot.telemetry.telemInfo[0].mLocalVel = new TelemVect3 { x = 0, y = 0, z = -50 };
+        snapshot.telemetry.telemInfo[0].mWheel[0].mBrakePressure = 0.4;
+        snapshot.telemetry.telemInfo[0].mWheel[1].mBrakePressure = 0.7;
+        snapshot.telemetry.telemInfo[0].mWheel[2].mBrakePressure = 0.2;
+        snapshot.telemetry.telemInfo[0].mWheel[3].mBrakePressure = 0.5;
+
+        provider.ApplySharedMemorySnapshot(snapshot, DateTimeOffset.UtcNow);
+        var consoleSnapshot = provider.GetConsoleSnapshot();
+
+        Assert.True(consoleSnapshot.Connected);
+        Assert.Equal(7, consoleSnapshot.LapNumber);
+        Assert.Equal(180.0, Math.Round(consoleSnapshot.SpeedKph ?? 0.0, 1));
+        Assert.Equal(0.83, consoleSnapshot.Throttle);
+        Assert.Equal(0.05, consoleSnapshot.Brake);
+        Assert.Equal(-0.2, consoleSnapshot.Steering);
+        Assert.Equal(5, consoleSnapshot.Gear);
+        Assert.Equal(8120, consoleSnapshot.Rpm);
+        Assert.Equal(42.5, consoleSnapshot.FuelLiters);
+        Assert.Equal(0.7, consoleSnapshot.MaxBrakePressure);
     }
 
     private static SharedMemoryObjectOut CreateSnapshot() =>

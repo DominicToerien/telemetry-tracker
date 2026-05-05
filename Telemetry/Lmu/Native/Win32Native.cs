@@ -44,18 +44,6 @@ internal static partial class Win32Native
     [return: MarshalAs(UnmanagedType.Bool)]
     public static partial bool CloseHandle(IntPtr handle);
 
-    [LibraryImport("kernel32.dll", EntryPoint = "InterlockedCompareExchange")]
-    public static unsafe partial int InterlockedCompareExchange(int* destination, int exchange, int comparand);
-
-    [LibraryImport("kernel32.dll", EntryPoint = "InterlockedIncrement")]
-    public static unsafe partial int InterlockedIncrement(int* addend);
-
-    [LibraryImport("kernel32.dll", EntryPoint = "InterlockedDecrement")]
-    public static unsafe partial int InterlockedDecrement(int* addend);
-
-    [LibraryImport("kernel32.dll", EntryPoint = "InterlockedExchange")]
-    public static unsafe partial int InterlockedExchange(int* target, int value);
-
     public static void ThrowLastWin32Error(string message)
     {
         throw new Win32Exception(Marshal.GetLastPInvokeError(), message);

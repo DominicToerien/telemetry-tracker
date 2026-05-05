@@ -131,3 +131,70 @@ Why:
 Consequences:
 - New user-facing behaviour should be added under `Features/{FeatureName}` first.
 - Infrastructure such as the LMU provider can remain outside the feature folder, but feature contracts and handlers should live with the feature.
+
+## 2026-05-04 - Single Codebase With Collector And Hosted Server Roles
+
+Status:
+- accepted
+
+Decision:
+- Keep local telemetry collection and hosted ingestion/query capabilities in the same project, with role-specific runtime behavior.
+
+Why:
+- Preserves implementation speed and shared contracts in one codebase.
+- Matches the requirement that LMU shared memory must be read locally on the user machine.
+- Avoids shipping database credentials to end users.
+
+Consequences:
+- Add explicit runtime mode configuration (collector vs server) as implementation proceeds.
+- Add ingestion endpoints for collector-to-server lap submission.
+- Persistence secrets remain server-only; local runtime should work without DB credentials.
+
+## 2026-05-04 - LMU Plugin Prerequisites Are Normalized At Startup
+
+Status:
+- accepted
+
+Decision:
+- On local LMU collector startup, validate and normalize the shared-memory plugin configuration by checking plugin presence, enabling the plugin entry, forcing `UnsubscribedBuffersMask = 0`, and forcing `EnableDirectMemoryAccess = 1`.
+
+Why:
+- LMU telemetry troubleshooting showed that local machine configuration drift was a real source of false-negative telemetry failures.
+- The collector should be resilient to common plugin misconfiguration instead of relying on manual edits every time.
+
+Consequences:
+- Startup now mutates `CustomPluginVariables.JSON` when required settings are missing or incorrect.
+- The project assumes this local file is safe to manage automatically on user machines running the collector role.
+- Future plugin-related troubleshooting should inspect startup normalization logs first.
+
+## 2026-05-04 - LMU Interop Layout Must Preserve Telemetry Offsets Exactly
+
+Status:
+- accepted
+
+Decision:
+- Treat the LMU scoring-to-telemetry memory boundary as offset-sensitive and preserve the effective 12-byte scoring stream size region in the interop layout to avoid telemetry block drift.
+
+Why:
+- We reached a state where LMU was clearly connected and in realtime, but `activeVehicles` remained `0` until the scoring layout was corrected.
+- This indicated a real interop alignment problem rather than only a plugin configuration problem.
+
+Consequences:
+- Shared-memory layout fixes must be validated not only by struct-size tests but by verifying downstream telemetry fields stay sane.
+- Changes near `SharedMemoryScoringData` and `SharedMemoryTelemetryData` should be treated as high-risk LMU interop work.
+
+## 2026-05-04 - Live Telemetry Console Uses A Single Updating Status Row
+
+Status:
+- accepted
+
+Decision:
+- Render live telemetry verification as a single updating console row instead of sequential log lines.
+
+Why:
+- Sequential once-per-second telemetry lines quickly became unreadable during live driving verification.
+- The main purpose of this console output is live operator feedback, not long-term log retention.
+
+Consequences:
+- Important startup and warning messages should remain normal logs, while the live telemetry feed behaves like a status display.
+- Console rendering must account for terminal width so the status row does not wrap into multiple physical lines.
