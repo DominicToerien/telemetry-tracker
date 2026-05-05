@@ -18,6 +18,11 @@ The goal is not to generate code, but to accelerate structured problem solving.
 - Write or update `agent/specs/product.md`
 - Clearly define architecture, constraints, goals, and current scope
 
+### 1.5. Confirm Naming Conventions
+
+- Before creating Linear tickets or git branches, follow the naming rules in `agent/rules.md`.
+- Tickets and branches must start with `Feature/`, `Bug/`, `Spike/`, etc (see `agent/rules.md` for the allowed set and formats).
+
 ### 2. Generate Execution Plan
 
 - Ask AI to create or refine `agent/plan.md`

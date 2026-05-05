@@ -13,6 +13,56 @@
 - Update `agent/decisions.md` when a meaningful architectural or scope decision is made.
 - Update `agent/progress.md` when project status meaningfully changes.
 
+## Naming Conventions (Tickets and Branches)
+
+These rules apply whenever you ask me to create:
+- a Linear ticket
+- a git branch
+
+### Allowed Prefixes
+
+Every ticket title and every branch name must start with one of:
+- `Feature/`
+- `Bug/`
+- `Spike/`
+- `Chore/`
+- `Refactor/`
+- `Docs/`
+- `Test/`
+
+If you do not specify a type, I will choose the best match and I will call out the choice in the response.
+
+### Ticket Naming Rule (Linear)
+
+Format:
+- `<Type>/<ConciseTitle>`
+
+Guidelines:
+- Keep `<ConciseTitle>` short and specific (avoid vague titles like "Telemetry work").
+- Include the bounded outcome and the relevant area (examples: `Console`, `LMU`, `Tracking`, `Supabase`, `AI`).
+- Avoid punctuation that makes searching hard; use words instead of symbols when possible.
+
+Examples:
+- `Feature/Live Console Telemetry Output`
+- `Spike/Investigate LMU XML Results Logs`
+- `Bug/Telemetry Status Shows Connected When LMU Is Closed`
+
+### Branch Naming Rule (Git)
+
+Format:
+- `<Type>/<linearKey>-<kebab-title>` when a Linear issue key exists (preferred)
+- `<Type>/<kebab-title>` when no Linear key exists
+
+Guidelines:
+- `kebab-title` is lowercase, words separated by `-`.
+- Keep it short (ideally 3-8 words).
+- If a ticket exists, always include its key in the branch name.
+
+Examples:
+- `Feature/RE-12-live-console-telemetry-output`
+- `Spike/RE-13-investigate-lmu-xml-results-logs`
+- `Bug/RE-14-fix-disconnected-status-on-startup`
+
 ## Additional Working Rules
 
 - Keep endpoints thin.

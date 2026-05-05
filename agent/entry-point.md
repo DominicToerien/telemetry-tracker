@@ -45,6 +45,7 @@ Before performing any task:
 - When in doubt, reduce scope rather than expand it.
 - Use a skill every time it makes sense to do so.
 - If a relevant skill is not used, state the reason clearly.
+- Follow ticket and branch naming conventions defined in `agent/rules.md` (prefixes like `Feature/`, `Bug/`, `Spike/`, etc).
 - Update `agent/decisions.md` when a meaningful decision is made.
 - Update `agent/progress.md` when delivery status changes.
 - Keep references aligned with the real repository structure; do not point to files or folders that do not exist.
