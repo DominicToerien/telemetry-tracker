@@ -6,6 +6,11 @@ Build a lightweight single-process telemetry analysis service for Le Mans Ultima
 
 The goal is a clean working vertical slice with strong foundations and deliberately limited scope.
 
+Deployment model for this plan:
+- one codebase
+- two runtime roles: local `Collector` and hosted `Server`
+- collector reads local LMU data and sends tracked lap payloads to server ingestion endpoints
+
 ## Product Goal
 
 Deliver a running backend service where:
@@ -74,6 +79,10 @@ The application is a single ASP.NET Core Web API process that:
 - saves one summary and one detailed trace per completed lap
 - exposes API endpoints for tracking, status, saved laps, and AI analysis
 
+Across environments this process should support:
+- Collector mode on user machines for LMU-local acquisition
+- Server mode in hosted environment for ingest/persist/query/AI
+
 ## Tracking Behaviour
 
 Telemetry is always readable, but persistence is controlled.
@@ -102,11 +111,15 @@ Telemetry is always readable, but persistence is controlled.
 - `POST /tracking/stop`
 - `GET /tracking/status`
 
+Collector-to-server ingestion endpoints (to add):
+- `POST /ingest/laps`
+- optional heartbeat endpoint for collector connection visibility
+
 ## Live Console Verification
 
 The console must continuously display telemetry status regardless of tracking state.
 
-Expected output once per second:
+Expected output once per second as a single updating console status line:
 
 ```text
 [Telemetry] connected=true | tracking=false | packets/sec=118 | lap=4 | speed=243 | throttle=92% | brake=0% | gear=6 | rpm=8210
@@ -356,6 +369,11 @@ Responsibility:
 
 - `POST /ask`
 
+### Ingestion (Hosted Server)
+
+- `POST /ingest/laps` (collector submits completed lap summary plus trace payload)
+- future: collector heartbeat/status endpoint if needed
+
 Implementation preference:
 - thin endpoints
 - request/handler per feature
@@ -384,6 +402,7 @@ Organise by feature rather than technical layer. Likely top-level slices:
 
 - `Features/TelemetryStatus`
 - `Features/Tracking`
+- `Features/Ingestion`
 - `Features/Laps`
 - `Features/Ask`
 - `Infrastructure/Persistence`
@@ -516,6 +535,7 @@ Unless requirements change, use these defaults:
 - console logging only
 - thin endpoints or Minimal APIs
 - Supabase Postgres as the only persistence store
+- database credentials only in hosted server configuration
 - one current tracked lap buffered in memory
 - no persistence when tracking is off
 - `LapSummary` is the default input for AI prompts

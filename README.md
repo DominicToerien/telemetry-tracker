@@ -1,13 +1,18 @@
 # telemetry-tracker
 
-`telemetry-tracker` is a `net8.0` ASP.NET Core API for reading Le Mans Ultimate telemetry from shared memory and exposing service health/status over HTTP.
+`telemetry-tracker` is a `net8.0` ASP.NET Core application for Le Mans Ultimate telemetry collection and analysis.
+
+It is designed to support two runtime modes from one codebase:
+- `Collector` mode (user machine): reads LMU shared memory locally and sends telemetry/lap payloads to a hosted API.
+- `Server` mode (hosted): accepts telemetry ingestion, persists lap summaries/traces, and serves query/analysis endpoints.
 
 The current implementation is intentionally narrow:
 - It reads LMU shared memory on Windows.
 - It keeps the latest copied scoring/telemetry snapshot in memory.
 - It exposes connection/debug status endpoints for bring-up and validation.
+- It renders a live single-line console telemetry status display for local verification while driving.
 - It exposes that telemetry status through a dedicated `Features/TelemetryStatus` vertical slice.
-- It does not yet include persistence, analytics, or a frontend.
+- It does not yet include the full collector ingestion flow, persistence slices, analytics, or a frontend.
 
 ## Project Status
 
@@ -26,6 +31,7 @@ The persistent AI working context lives under [agent/](./agent/README.md), produ
 Notes:
 - The API can still run on non-Windows platforms, but LMU shared memory will be reported as unsupported/disconnected.
 - The project currently defaults to a Linux Docker target for container tooling, but live LMU telemetry is a Windows-only runtime feature.
+- End users must run the collector locally on the same machine that can access LMU shared memory.
 
 ## Quick Start
 
@@ -66,7 +72,15 @@ LMU reader settings live in `appsettings.json` under `LmuTelemetry`:
 "LmuTelemetry": {
   "Enabled": true,
   "RetryIntervalSeconds": 5,
-  "DebugLogging": false
+  "DebugLogging": false,
+  "AutoEnablePluginOnStartup": true,
+  "GameInstallPath": "",
+  "CustomPluginVariablesPath": "",
+  "PluginDllNames": [
+    "rFactor2SharedMemoryMapPlugin64.dll",
+    "rF2SharedMemoryMapPlugin64.dll",
+    "rF2SharedMemeryMapPlugin.dll"
+  ]
 }
 ```
 
@@ -74,6 +88,19 @@ Fields:
 - `Enabled`: turns the LMU background reader on or off
 - `RetryIntervalSeconds`: retry delay when LMU shared memory is unavailable
 - `DebugLogging`: enables extra reader logging
+- `AutoEnablePluginOnStartup`: when true, attempts to set shared-memory plugin `Enabled` to `1` in `CustomPluginVariables.JSON` if it is disabled or missing
+- `GameInstallPath`: optional LMU install root override for startup prerequisite checks
+- `CustomPluginVariablesPath`: optional explicit path override for `CustomPluginVariables.JSON`
+- `PluginDllNames`: plugin DLL names accepted by the startup prerequisite checker
+
+On startup, the LMU background service now validates:
+- at least one expected shared-memory plugin DLL exists under `Plugins` or `Bin64/Plugins`
+- `CustomPluginVariables.JSON` exists at the configured or detected LMU path
+- shared-memory plugin entries are enabled
+- `UnsubscribedBuffersMask` is normalized to `0`
+- `EnableDirectMemoryAccess` is normalized to `1`
+
+These startup checks can also normalize the local plugin JSON when `AutoEnablePluginOnStartup` is enabled. Failures are logged as warnings and do not crash the API.
 
 ## API Endpoints
 
@@ -98,6 +125,22 @@ Returns a lightweight debug view of the latest copied snapshot metadata, such as
 
 This endpoint is for bring-up/debugging and should not be treated as a stable public telemetry contract yet.
 
+## Deployment Direction
+
+Planned deployment model:
+- user runs local collector build on Windows
+- collector reads LMU shared memory and posts tracked lap payloads to hosted API
+- hosted API owns Supabase credentials and persistence
+
+Security boundary:
+- do not ship real DB connection strings to end users
+- collector should not require direct database credentials
+- server-only secrets stay in hosted environment configuration
+
+Configuration expectation:
+- app should run in a degraded mode when persistence configuration is missing
+- telemetry status and local verification should still function without DB access
+
 ## Architecture Overview
 
 Main flow:
@@ -106,7 +149,8 @@ Main flow:
 2. On Windows, it attempts to open the LMU event, file mapping, and shared lock objects.
 3. When LMU signals an update, the service copies the shared-memory layout into managed structs.
 4. `LmuTelemetryProvider` stores the latest thread-safe in-memory status/snapshot.
-5. The `Features/TelemetryStatus` slice exposes thin query endpoints over that state.
+5. The background service renders a live single-row console status line for local verification.
+6. The `Features/TelemetryStatus` slice exposes thin query endpoints over that state.
 
 Important files:
 - [agent/README.md](/abs/path/c:/Users/toeri/source/repos/telemetry-tracker/agent/README.md)
@@ -183,6 +227,13 @@ Current tests cover:
 - scoring-only update handling
 - telemetry-only update handling
 - status endpoint response shape
+
+## Current LMU Bring-Up State
+
+- Real LMU shared memory connection is working on Windows.
+- The project can now display live player-car values such as lap, speed, throttle, brake, steering, gear, RPM, fuel, and brake pressure in the console.
+- LMU plugin configuration is normalized on startup to reduce local setup drift.
+- Remaining work is to build tracking, persistence, and analysis on top of this working live telemetry foundation.
 
 ## Developer Notes
 

@@ -13,6 +13,7 @@ builder.Logging.ClearProviders();
 builder.Logging.AddConsole();
 builder.Logging.AddDebug();
 
+builder.Services.AddAuthorization();
 builder.Services.Configure<LmuTelemetryOptions>(builder.Configuration.GetSection(LmuTelemetryOptions.SectionName));
 builder.Services.AddSingleton<LmuTelemetryProvider>();
 builder.Services.AddSingleton<ITelemetryStatusQueries>(static sp => sp.GetRequiredService<LmuTelemetryProvider>());
@@ -30,6 +31,23 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
 var app = builder.Build();
+var startupLogger = app.Services.GetRequiredService<ILoggerFactory>().CreateLogger("Startup");
+
+app.Lifetime.ApplicationStarted.Register(() =>
+{
+    if (app.Urls.Count == 0)
+    {
+        startupLogger.LogWarning("Application started but no bound URLs were reported.");
+        Console.WriteLine("[Startup] Listening on: (none)");
+        return;
+    }
+
+    foreach (var url in app.Urls)
+    {
+        startupLogger.LogInformation("Application listening on: {Url}", url);
+        Console.WriteLine("[Startup] Listening on: {0}", url);
+    }
+});
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())

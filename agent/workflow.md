@@ -57,6 +57,7 @@ After each step:
 
 - always build against mocks first
 - only integrate external systems such as LMU, database, and LLM once the flow works end-to-end
+- when integrating real persistence, keep DB access on hosted server side and use collector-to-server ingest from local clients
 
 ### 6. Validate with Real Use Cases
 
