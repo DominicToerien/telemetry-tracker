@@ -216,3 +216,39 @@ Why:
 Consequences:
 - Important startup and warning messages should remain normal logs, while the live telemetry feed behaves like a status display.
 - Console rendering must account for terminal width so the status row does not wrap into multiple physical lines.
+
+## 2026-05-05 - Standardize Supabase .env Loading On ASP.NET ConnectionStrings Convention
+
+Status:
+- accepted
+
+Decision:
+- Replace the custom `.env` parser with `DotNetEnv` and standardize local database configuration on `ConnectionStrings__Supabase`.
+
+Why:
+- Keeps startup simpler and closer to common ASP.NET configuration patterns.
+- Removes ambiguity between multiple possible connection-string variable names.
+- Makes `.env` behavior line up with `configuration.GetConnectionString("Supabase")`.
+
+Consequences:
+- Local `.env` setup for persistence should use `ConnectionStrings__Supabase` only.
+- The previous custom-only fallback key `SUPABASE_CONNECTION_STRING` is no longer part of the supported configuration path.
+- LMU and telemetry startup behavior remain independent of persistence because DbContext registration is still conditional.
+
+## 2026-05-05 - EF Core Migrations Run Automatically On Startup When Persistence Is Configured
+
+Status:
+- accepted
+
+Decision:
+- Resolve `TelemetryTrackerDbContext` during startup and call `dbContext.Database.Migrate()` automatically when the DbContext is registered.
+
+Why:
+- Removes manual migration steps during development and deployment.
+- Keeps persistence setup closer to zero-touch once a valid connection string is present.
+- Still preserves the current telemetry bring-up path because migration only runs when the DbContext exists.
+
+Consequences:
+- Hosted/server environments can apply pending EF Core migrations on boot automatically.
+- Local collector or misconfigured environments still start because missing DbContext registration skips the migration path entirely.
+- Migration failures are logged and do not block application startup, which favors telemetry availability over hard-failing on persistence startup problems at this stage.

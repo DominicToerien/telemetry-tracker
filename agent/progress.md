@@ -27,7 +27,9 @@ It should be updated whenever implementation meaningfully changes delivery statu
 - consolidated `agent/`, `agent/specs/`, and `agent/skills/` documentation structure is in place
 - `agent/skills/` index and entry-point-driven document loading flow are in place
 - Supabase EF Core package, DbContext shell, and startup registration hook are in place
-- Root `.env` loading is in place for local secret-based configuration
+- Root `.env` loading is in place via `DotNetEnv`
+- Supabase local configuration is standardized on `ConnectionStrings__Supabase`
+- EF Core startup auto-migration is in place when the DbContext is registered
 
 ## In Progress
 

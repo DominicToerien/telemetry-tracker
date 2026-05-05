@@ -6,9 +6,7 @@ public static class ServiceCollectionExtensions
 {
     public static bool TryAddTelemetryTrackerDbContext(this IServiceCollection services, IConfiguration configuration)
     {
-        var connectionString =
-            configuration.GetConnectionString("Supabase") ??
-            configuration["SUPABASE_CONNECTION_STRING"];
+        var connectionString = configuration.GetConnectionString("Supabase");
 
         if (string.IsNullOrWhiteSpace(connectionString))
         {

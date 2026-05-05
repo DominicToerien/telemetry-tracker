@@ -1,9 +1,10 @@
+using DotNetEnv;
+using Microsoft.EntityFrameworkCore;
 using telemetry_tracker.Features.TelemetryStatus;
-using telemetry_tracker.Infrastructure.Configuration;
 using telemetry_tracker.Infrastructure.Persistence;
 using telemetry_tracker.Telemetry.Lmu;
 
-DotEnvLoader.Load(Path.Combine(Directory.GetCurrentDirectory(), ".env"));
+Env.Load();
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -32,6 +33,24 @@ builder.Services.AddSwaggerGen();
 
 var app = builder.Build();
 var startupLogger = app.Services.GetRequiredService<ILoggerFactory>().CreateLogger("Startup");
+
+using (var scope = app.Services.CreateScope())
+{
+    var dbContext = scope.ServiceProvider.GetService<TelemetryTrackerDbContext>();
+    if (dbContext is not null)
+    {
+        try
+        {
+            dbContext.Database.Migrate();
+            startupLogger.LogInformation("Database migrations applied successfully.");
+        }
+        catch (Exception ex)
+        {
+            startupLogger.LogWarning(ex, "Database migration failed. Continuing without blocking application startup.");
+            Console.WriteLine("[Persistence] Database migration failed: {0}", ex.Message);
+        }
+    }
+}
 
 app.Lifetime.ApplicationStarted.Register(() =>
 {
