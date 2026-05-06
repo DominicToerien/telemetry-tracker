@@ -55,6 +55,14 @@ Do not introduce:
 - Queries return data.
 - Keep command/query handlers explicit, narrow, and easy to follow.
 
+Future implementation direction for CQRS in this project:
+- treat write-side persistence as the source of truth
+- allow command handlers to persist write-side data and return without waiting for read-model materialization
+- defer read-model creation or refresh to a background worker when projection work could slow an API response
+- keep projection execution in-process at first using `HostedService` / `BackgroundService` friendly patterns
+- evolve to more durable projection coordination only when real reliability or scale needs justify it
+- treat Redis, if later added, as a read-side cache layered on top of projected read models rather than as the source of truth
+
 ### 3. Limited Scope
 
 - Build the smallest complete version that works end-to-end.
@@ -336,6 +344,7 @@ Endpoints:
 Expected behaviour:
 - `GET /laps` returns lightweight lap summary records suitable for browsing and filtering
 - `GET /laps/{id}` returns the selected lap summary plus its trace when needed for drill-down
+- future read-heavy views may be served from dedicated projected read models instead of directly from write-side tables
 
 ### 5. AI Analysis
 
@@ -393,8 +402,10 @@ End-to-end flow:
 8. lap summary is calculated
 9. lap trace JSON payload is created
 10. summary and trace are saved to Supabase Postgres
-11. APIs expose saved lap data
-12. `/ask` builds a prompt from summary plus optional trace and returns AI-assisted analysis
+11. if later query shapes become expensive, projection work is queued for a background worker instead of blocking the write response
+12. projected read models are refreshed asynchronously
+13. APIs expose saved lap data
+14. `/ask` builds a prompt from summary plus optional trace and returns AI-assisted analysis
 
 ## Suggested Vertical Slice Structure
 
@@ -414,6 +425,11 @@ Each feature should keep its own:
 - handler
 - validation where needed
 - feature-local persistence query/command logic where practical
+
+When future read models are introduced:
+- keep write handlers in the owning feature slice
+- place projection handlers or background projection workers close to the feature they serve when practical
+- keep query handlers reading from read models or cache-friendly shapes, not from command orchestration code
 
 ## Testing Priorities
 
@@ -503,6 +519,13 @@ Avoid:
 - tighten logs
 - improve error messages
 - clean up rough edges in the vertical slice
+
+### Later Architectural Evolution
+
+- add asynchronous read-model projection when write endpoints would otherwise block on expensive query-shape updates
+- start with an in-process queue plus background worker before considering heavier infrastructure
+- add Redis only after read models exist and query hot paths justify caching
+- invalidate or refresh Redis from the read side, not from ad hoc endpoint logic
 
 ## Explicit Non-Goals
 

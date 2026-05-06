@@ -37,4 +37,5 @@ packages/
 # Local environment / secrets
 .env
 .env.*
+.agent-workspace.json
 secrets.json
