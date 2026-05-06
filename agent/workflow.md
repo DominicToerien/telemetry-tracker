@@ -23,6 +23,12 @@ The goal is not to generate code, but to accelerate structured problem solving.
 - Before creating Linear tickets or git branches, follow the naming rules in `agent/rules.md`.
 - Tickets and branches must start with `Feature/`, `Bug/`, `Spike/`, etc (see `agent/rules.md` for the allowed set and formats).
 
+### 1.6. Isolate The Workspace
+
+- For any task that will change repository files, create or use a dedicated git worktree for that chat.
+- If the task belongs to a Linear issue, use the branch associated with that issue inside the worktree.
+- Treat the main checkout as coordination space, not the default place for parallel implementation work.
+
 ### 2. Generate Execution Plan
 
 - Ask AI to create or refine `agent/plan.md`
@@ -42,6 +48,7 @@ For each phase:
 - instruct AI to implement only one phase
 - do not allow skipping ahead
 - ensure each slice is complete and testable
+- keep each active chat isolated to its own worktree and branch while implementing
 
 Example instruction:
 

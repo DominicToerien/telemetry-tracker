@@ -26,6 +26,7 @@ It should be updated whenever implementation meaningfully changes delivery statu
 - Initial unit and integration-style tests for LMU status/interoperability are in place
 - consolidated `agent/`, `agent/specs/`, and `agent/skills/` documentation structure is in place
 - `agent/skills/` index and entry-point-driven document loading flow are in place
+- local parallel-agent worktree scripts are in place for branch-isolated chats with workspace-specific ports
 
 ## In Progress
 
@@ -53,6 +54,9 @@ It should be updated whenever implementation meaningfully changes delivery statu
 - Keep the project runnable while evolving from telemetry-status foundation to the first complete telemetry-tracking slice.
 - Preserve LMU correctness while introducing source abstraction and tracking behaviour.
 - Keep the agent context structure stable so `read agent/entry-point.md` remains a dependable workflow starter.
+- Add infrastructure only when it unlocks the next slice cleanly and without widening scope.
+- Keep parallel local AI work isolated through worktrees rather than shared branch switching.
+- Make dedicated worktrees the default expectation for any chat that edits the repository.
 
 ## Known Constraints
 

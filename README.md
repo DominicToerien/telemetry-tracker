@@ -228,6 +228,38 @@ Current tests cover:
 - telemetry-only update handling
 - status endpoint response shape
 
+## Local .env example
+
+See [.env.example](./.env.example) for the expected local configuration shape.
+
+## Parallel Agent Work
+
+If you want multiple Codex chats or agents working in parallel on different branches, use git worktrees instead of repeatedly switching one checkout.
+
+The repo now includes helper scripts for that workflow:
+
+- `scripts/New-AgentWorkspace.ps1`
+- `scripts/Invoke-AgentWorkspace.ps1`
+- `scripts/Remove-AgentWorkspace.ps1`
+
+These scripts create a separate worktree per task, assign workspace-specific localhost ports, and optionally copy your local `.env` into the new worktree.
+
+Start here:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\scripts\New-AgentWorkspace.ps1 `
+  -Name tracking `
+  -BranchName Spike/tracking-control `
+  -BaseBranch main
+```
+
+Then open that worktree in a separate chat/editor window and run:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\scripts\Invoke-AgentWorkspace.ps1 -Command run
+```
+
+There is a fuller walkthrough in [docs/parallel-agent-worktrees.md](./docs/parallel-agent-worktrees.md).
 ## Current LMU Bring-Up State
 
 - Real LMU shared memory connection is working on Windows.

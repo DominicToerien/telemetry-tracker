@@ -12,6 +12,9 @@
 - Keep Supabase/Postgres credentials server-side only; do not require DB secrets in local collector runtime.
 - Update `agent/decisions.md` when a meaningful architectural or scope decision is made.
 - Update `agent/progress.md` when project status meaningfully changes.
+- Use a dedicated git worktree for every chat that makes repository changes.
+- If work is associated with a Linear issue, the worktree must be on that issue's branch.
+- Do not implement repository changes from a shared checkout when the task should have its own issue/branch.
 
 ## Naming Conventions (Tickets and Branches)
 
