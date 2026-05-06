@@ -189,6 +189,18 @@ Reference headers:
 - `references/lmu-sdks/InternalsPlugin.hpp`
 - `references/lmu-sdks/PluginObjects.hpp`
 
+Setup example for future tuning-related planning:
+- `references/lmu-setups/TempModFile.svm`
+
+The sample `.svm` file is included as a reference for the kinds of setup domains future telemetry-driven guidance may need to reason about, such as:
+- aero and cooling
+- anti-roll bars, toe, springs, dampers, and ride heights
+- brake balance, pressure, and control maps
+- differential and driveline settings
+- tire pressures, compounds, and brake hardware
+
+This does not mean the project should dump every available LMU telemetry field into `lap_traces.Samples`. The intent is to keep trace samples compact while choosing verified telemetry fields and lap context that will later support informed setup recommendations per car and track.
+
 ## Failure Handling Expectations
 
 If LMU shared memory is unavailable:

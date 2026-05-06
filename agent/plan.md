@@ -21,6 +21,7 @@ Deliver a running backend service where:
   - one JSONB lap trace
 - the API exposes saved lap data
 - AI insights are based on meaningful telemetry context
+- future setup guidance can be grounded in telemetry that is useful for car-and-track-specific setup decisions
 
 ## Technology and Constraints
 
@@ -190,6 +191,13 @@ Purpose:
 - deeper analysis
 - optional input for AI when detailed insight is needed
 - not the default shape for general querying
+- future input for setup-tuning guidance when paired with the applied setup and lap context
+
+Future setup-related context to associate with a lap:
+- car or class
+- track and layout
+- session conditions where available
+- the applied setup snapshot, setup file, or a stable setup fingerprint
 
 ## Telemetry Sample Format
 
@@ -215,6 +223,12 @@ Rules:
 - use numeric values where possible
 - keep the shape consistent
 - `t` is relative to lap start
+- choose sample fields with future setup analysis in mind, not only lap replay
+
+Future telemetry-selection principle for setup work:
+- do not mirror every LMU field into JSONB by default
+- include verified telemetry that helps explain setup-sensitive behavior such as tire usage, brake behavior, traction, gearing and rev behavior, ride-platform behavior, damping response, and aero balance
+- keep session-level or setup-level metadata out of every sample when it belongs once per lap or session instead
 
 ## Sampling Strategy
 
@@ -226,6 +240,14 @@ Rules:
   - throttle application
   - gear changes
   - steering inputs
+
+Also preserve enough verified signal, when available from LMU, to support later setup decisions around:
+- tire pressures, temperatures, wear, and grip behavior
+- brake locking, stability, and migration effects
+- diff and traction behavior on corner exit
+- gearing and rev-limit behavior on key straights
+- suspension and ride-platform behavior over kerbs, pitch, and heave
+- aero tradeoffs between straight-line speed and corner support
 
 ## Telemetry Source Design
 
@@ -257,6 +279,7 @@ Reference files are the source of truth:
 - `references/lmu-sdks/InternalsPlugin.hpp`
 - `references/lmu-sdks/PluginObjects.hpp`
 - `references/lmu-sdks/SharedMemoryInterface.hpp`
+- `references/lmu-setups/TempModFile.svm` as an example of the LMU setup domains future tuning guidance must eventually reason about
 
 If these files are later moved under `docs/lmu-sdk/`, the plan remains the same: those headers are authoritative.
 
@@ -347,6 +370,7 @@ Responsibility:
 - use `LapSummary` as the primary context
 - include `LapTrace` only when the question needs deeper analysis
 - avoid shipping unnecessary telemetry into the prompt
+- later, support setup-oriented questions by relating telemetry behavior to the applied setup context
 
 ## API Surface
 

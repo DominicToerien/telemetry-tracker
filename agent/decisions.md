@@ -198,3 +198,23 @@ Why:
 Consequences:
 - Important startup and warning messages should remain normal logs, while the live telemetry feed behaves like a status display.
 - Console rendering must account for terminal width so the status row does not wrap into multiple physical lines.
+
+## 2026-05-06 - Telemetry Trace Design Must Stay Useful For Future Setup Guidance
+
+Status:
+- accepted
+
+Decision:
+- Keep `lap_traces.Samples` compact and curated instead of mirroring every LMU telemetry field.
+- Choose future trace fields and lap-level metadata with setup-analysis use cases in mind, not only lap replay or general AI feedback.
+- Treat the applied setup context as a future lap/session-level concern rather than repeating setup metadata inside every sample.
+
+Why:
+- Future setup recommendations need telemetry that helps explain the effects of aero, suspension, brake, driveline, and tire choices.
+- A raw field dump would bloat JSONB storage without guaranteeing the right analysis context.
+- The setup file structure shows that useful setup reasoning depends on both telemetry behavior and the setup domains applied to that lap.
+
+Consequences:
+- Future telemetry-shape decisions should be judged against setup-analysis usefulness as well as storage cost.
+- The project will likely need a way to associate laps with an applied setup snapshot, setup file, or stable setup fingerprint.
+- Setup-oriented analysis remains a future feature, but the data model should not close that door early.

@@ -26,6 +26,7 @@ It should be updated whenever implementation meaningfully changes delivery statu
 - Initial unit and integration-style tests for LMU status/interoperability are in place
 - consolidated `agent/`, `agent/specs/`, and `agent/skills/` documentation structure is in place
 - `agent/skills/` index and entry-point-driven document loading flow are in place
+- setup-tuning documentation context is now captured in repo docs, including an example `.svm` setup reference file
 
 ## In Progress
 
@@ -53,6 +54,7 @@ It should be updated whenever implementation meaningfully changes delivery statu
 - Keep the project runnable while evolving from telemetry-status foundation to the first complete telemetry-tracking slice.
 - Preserve LMU correctness while introducing source abstraction and tracking behaviour.
 - Keep the agent context structure stable so `read agent/entry-point.md` remains a dependable workflow starter.
+- Preserve a telemetry-capture direction that will still support future setup-guidance workflows.
 
 ## Known Constraints
 

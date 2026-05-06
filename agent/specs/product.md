@@ -11,6 +11,7 @@ The service should:
 - store lap-level summaries and detailed lap telemetry traces in Supabase Postgres
 - expose an API for querying saved laps and asking AI-assisted driving-performance questions
 - support both local telemetry collection and hosted ingestion/query capabilities from one codebase
+- preserve enough verified telemetry and lap context to support future setup-tuning guidance per car and track
 
 The focus is on delivering a clean, working vertical slice of functionality with strong architectural foundations and limited scope.
 
@@ -96,6 +97,10 @@ Use two tables:
 `lap_summaries` is for filtering, comparisons, and primary AI prompt context.
 
 `lap_traces` is for deeper analysis and optional AI detail when needed.
+
+Future direction:
+- lap traces should stay compact, but the chosen telemetry fields must remain useful for setup analysis as well as driving analysis
+- future setup recommendations will likely need lap-to-setup context such as the applied setup file or setup fingerprint, plus car, track, and session conditions
 
 ## LMU Integration Rules
 
