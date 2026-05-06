@@ -30,6 +30,8 @@ It should be updated whenever implementation meaningfully changes delivery statu
 - Root `.env` loading is in place via `DotNetEnv`
 - Supabase local configuration is standardized on `ConnectionStrings__Supabase`
 - EF Core startup auto-migration is in place when the DbContext is registered
+- local parallel-agent worktree scripts are in place for branch-isolated chats with workspace-specific ports
+- branch-agnostic PM chat guidance is in place for planning-first workflows
 
 ## In Progress
 
@@ -59,6 +61,9 @@ It should be updated whenever implementation meaningfully changes delivery statu
 - Preserve LMU correctness while introducing source abstraction and tracking behaviour.
 - Keep the agent context structure stable so `read agent/entry-point.md` remains a dependable workflow starter.
 - Add infrastructure only when it unlocks the next slice cleanly and without widening scope.
+- Keep parallel local AI work isolated through worktrees rather than shared branch switching.
+- Make dedicated worktrees the default expectation for any chat that edits the repository.
+- Keep planning-first conversations branch-agnostic until they intentionally hand work off to an implementation chat.
 
 ## Known Constraints
 

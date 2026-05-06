@@ -38,4 +38,5 @@ packages/
 .env
 .env.*
 !.env.example
+.agent-workspace.json
 secrets.json
