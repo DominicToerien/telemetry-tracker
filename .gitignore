@@ -37,4 +37,5 @@ packages/
 # Local environment / secrets
 .env
 .env.*
+!.env.example
 secrets.json
