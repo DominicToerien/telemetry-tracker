@@ -15,6 +15,8 @@
 - Use a dedicated git worktree for every chat that makes repository changes.
 - If work is associated with a Linear issue, the worktree must be on that issue's branch.
 - Do not implement repository changes from a shared checkout when the task should have its own issue/branch.
+- Every new issue branch and implementation worktree must be created from `main`, not from another feature branch.
+- Pull or merge `main` forward into long-running branches to stay current instead of branching new work from in-progress branches.
 - A branch-agnostic PM chat should default to planning, issue management, and documentation coordination rather than repository edits.
 - A PM chat may stay on `main` or another coordination checkout, but implementation work should move to a dedicated issue worktree.
 

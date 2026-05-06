@@ -277,6 +277,13 @@ Recommended split:
 - each own a single issue or bounded task
 
 If planning work turns into implementation, the planning chat should prepare the issue, branch, worktree, and handoff prompt for a separate implementation chat.
+
+Branching rule for implementation chats:
+
+- start every new issue branch from `main`
+- create the worktree from `main`
+- merge `main` into longer-running branches as needed
+- merge completed work back to `main`
 ## Current LMU Bring-Up State
 
 - Real LMU shared memory connection is working on Windows.

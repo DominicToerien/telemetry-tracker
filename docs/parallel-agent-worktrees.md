@@ -9,6 +9,13 @@ Use git worktrees so each chat or agent gets:
 
 This avoids branch switching conflicts and makes it safe to run multiple local API instances at the same time.
 
+## Branching Rule
+
+- create every new issue branch from `main`
+- create every new implementation worktree from `main`
+- merge `main` into long-running branches to keep them current
+- do not branch new implementation work from another in-progress feature branch
+
 ## Scripts
 
 Create a worktree:

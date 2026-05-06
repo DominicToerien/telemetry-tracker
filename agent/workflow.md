@@ -29,6 +29,8 @@ If the chat is intended to be planning-only, use the `agent/skills/pm-chat.md` s
 
 - For any task that will change repository files, create or use a dedicated git worktree for that chat.
 - If the task belongs to a Linear issue, use the branch associated with that issue inside the worktree.
+- Create new issue branches and worktrees from `main` before implementation begins.
+- Prefer merging `main` into a long-running branch over branching new work from another unfinished branch.
 - Treat the main checkout as coordination space, not the default place for parallel implementation work.
 
 ### 2. Generate Execution Plan
