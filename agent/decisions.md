@@ -235,3 +235,21 @@ Consequences:
 - Local developer workflow now includes worktree bootstrap and teardown scripts.
 - Parallel local API runs should use workspace-specific runner scripts instead of shared launch-profile defaults.
 - Local `.env` values can be copied into new worktrees for convenience, while remaining gitignored.
+
+## 2026-05-06 - Product Planning Uses A Branch-Agnostic PM Chat
+
+Status:
+- accepted
+
+Decision:
+- Treat product and project planning as a separate branch-agnostic chat mode that prefers Notion, Linear, and GitHub over repository edits.
+- Use dedicated issue worktrees only when work transitions from planning into implementation.
+
+Why:
+- Planning and implementation have different needs and different risk profiles.
+- Keeping the PM chat branch-agnostic reduces accidental code changes in the wrong place while preserving a long-lived planning context.
+- This fits the new worktree-first implementation model without forcing every planning conversation into a branch.
+
+Consequences:
+- The repository should document a clear planning-chat pattern alongside the implementation-chat worktree pattern.
+- Planning chats should prepare implementation handoffs, but should not assume they can automatically create new top-level Codex chats.

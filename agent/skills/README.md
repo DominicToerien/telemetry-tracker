@@ -12,6 +12,8 @@ These are lightweight operational guides the agent should use when they match th
   Update architectural decisions when meaningful choices are made.
 - [lmu-integrity.md](/abs/path/c:/Users/toeri/source/repos/telemetry-tracker/agent/skills/lmu-integrity.md)
   Preserve LMU SDK correctness and avoid invented telemetry assumptions.
+- [pm-chat.md](/abs/path/c:/Users/toeri/source/repos/telemetry-tracker/agent/skills/pm-chat.md)
+  Run a branch-agnostic planning and project-management workflow using Notion, Linear, and GitHub before implementation begins.
 - [phase-execution.md](/abs/path/c:/Users/toeri/source/repos/telemetry-tracker/agent/skills/phase-execution.md)
   Stay within the requested phase or slice.
 - [progress-tracking.md](/abs/path/c:/Users/toeri/source/repos/telemetry-tracker/agent/skills/progress-tracking.md)

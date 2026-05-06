@@ -260,6 +260,23 @@ powershell -ExecutionPolicy Bypass -File .\scripts\Invoke-AgentWorkspace.ps1 -Co
 ```
 
 There is a fuller walkthrough in [docs/parallel-agent-worktrees.md](./docs/parallel-agent-worktrees.md).
+
+## Planning Chat Pattern
+
+It is also useful to keep one branch-agnostic planning chat that acts like a product or project manager for the repository.
+
+Recommended split:
+
+- planning chat
+  - stays branch-agnostic by default
+  - works mainly with Notion, Linear, and GitHub
+  - defines scope, sequencing, and issue breakdown
+- implementation chats
+  - each use a dedicated worktree
+  - each map to a dedicated branch
+- each own a single issue or bounded task
+
+If planning work turns into implementation, the planning chat should prepare the issue, branch, worktree, and handoff prompt for a separate implementation chat.
 ## Current LMU Bring-Up State
 
 - Real LMU shared memory connection is working on Windows.

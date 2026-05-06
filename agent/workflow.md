@@ -18,6 +18,8 @@ The goal is not to generate code, but to accelerate structured problem solving.
 - Write or update `agent/specs/product.md`
 - Clearly define architecture, constraints, goals, and current scope
 
+If the chat is intended to be planning-only, use the `agent/skills/pm-chat.md` skill and keep the chat branch-agnostic by default.
+
 ### 1.5. Confirm Naming Conventions
 
 - Before creating Linear tickets or git branches, follow the naming rules in `agent/rules.md`.
@@ -76,6 +78,15 @@ After each step:
 - use actual API calls
 - ask realistic questions
 - verify outputs match expectations
+
+## PM Chat Pattern
+
+Use a dedicated planning chat when the goal is product management rather than implementation.
+
+- Keep that chat focused on product decisions, specs, sequencing, and issue creation.
+- Prefer `Notion`, `Linear`, and `GitHub` over repo edits.
+- When work should move into implementation, prepare the issue, branch, worktree, and handoff prompt for a separate implementation chat.
+- Do not assume a new top-level Codex chat can be created automatically unless the platform explicitly supports it.
 
 ## Key Principles
 
