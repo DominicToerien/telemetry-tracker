@@ -26,6 +26,10 @@ It should be updated whenever implementation meaningfully changes delivery statu
 - Initial unit and integration-style tests for LMU status/interoperability are in place
 - consolidated `agent/`, `agent/specs/`, and `agent/skills/` documentation structure is in place
 - `agent/skills/` index and entry-point-driven document loading flow are in place
+- Supabase EF Core package, DbContext shell, and startup registration hook are in place
+- Root `.env` loading is in place via `DotNetEnv`
+- Supabase local configuration is standardized on `ConnectionStrings__Supabase`
+- EF Core startup auto-migration is in place when the DbContext is registered
 - local parallel-agent worktree scripts are in place for branch-isolated chats with workspace-specific ports
 - branch-agnostic PM chat guidance is in place for planning-first workflows
 
@@ -33,6 +37,7 @@ It should be updated whenever implementation meaningfully changes delivery statu
 
 - Expanding the project from LMU status verification into the broader lap-tracking and persistence workflow defined in `agent/plan.md`
 - Establishing the telemetry status feature as the architecture template for future slices
+- Establishing the persistence foundation so later lap-storage slices can target Supabase cleanly
 - Tightening the LMU bring-up path now that real in-game telemetry data is flowing
 - Defining collector-to-hosted ingestion direction so local clients do not need direct DB credentials
 
@@ -43,7 +48,7 @@ It should be updated whenever implementation meaningfully changes delivery statu
 - lap buffering and lap boundary detection
 - lap summary calculation
 - lap trace generation
-- Supabase persistence
+- Supabase persistence beyond connection setup and DbContext registration
 - saved lap query endpoints
 - `/ask` AI analysis endpoint
 - broader vertical-slice refactor beyond the telemetry status slice

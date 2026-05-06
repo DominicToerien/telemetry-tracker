@@ -66,6 +66,27 @@ If LMU is not running, the service should still start and return a disconnected 
 
 ## Configuration
 
+### Supabase connection string
+
+For local server-side persistence configuration, use a root `.env` file with this exact variable name:
+
+```dotenv
+ConnectionStrings__Supabase=Host=db.<project-ref>.supabase.co;Port=5432;Database=postgres;Username=postgres;Password=<password>;SSL Mode=Require;Trust Server Certificate=true
+```
+
+Notes:
+- `ConnectionStrings__Supabase` is the canonical variable name for this project.
+- The double underscore maps to ASP.NET configuration key `ConnectionStrings:Supabase`.
+- This is what `configuration.GetConnectionString("Supabase")` reads.
+- Do not use `SUPABASE_CONNECTION_STRING` for this project anymore.
+- Keep this value in `.env` or hosted environment configuration, never committed into `appsettings.json`.
+- The local collector role should remain runnable without this value; hosted server environments are where persistence secrets belong.
+
+If `ConnectionStrings__Supabase` is missing, the app still starts and logs that DbContext registration was skipped.
+
+If the DbContext is registered, the app also attempts to run EF Core migrations automatically on startup with `dbContext.Database.Migrate()`.
+If migration fails, the failure is logged and the application continues starting so LMU telemetry verification is not blocked by persistence issues.
+
 LMU reader settings live in `appsettings.json` under `LmuTelemetry`:
 
 ```json

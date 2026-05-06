@@ -132,6 +132,24 @@ Consequences:
 - New user-facing behaviour should be added under `Features/{FeatureName}` first.
 - Infrastructure such as the LMU provider can remain outside the feature folder, but feature contracts and handlers should live with the feature.
 
+## 2026-05-04 - Supabase DbContext Uses .env Configuration With Conditional Registration
+
+Status:
+- accepted
+
+Decision:
+- Load local environment variables from a root `.env` file at startup and register `TelemetryTrackerDbContext` only when a Supabase connection string is actually configured.
+
+Why:
+- Keeps the `RE-6` slice tightly focused on connection setup instead of wider persistence work.
+- Preserves a runnable application even when local database credentials are not present yet.
+- Supports the intended developer workflow where secrets are supplied through `.env` instead of being committed into config files.
+
+Consequences:
+- The app can start without Supabase and will log that DbContext registration was skipped.
+- Future persistence slices can depend on a real EF Core DbContext without reworking startup configuration.
+- Features that require database access must handle the fact that local environments may not have Supabase configured yet.
+
 ## 2026-05-04 - Single Codebase With Collector And Hosted Server Roles
 
 Status:
@@ -198,6 +216,43 @@ Why:
 Consequences:
 - Important startup and warning messages should remain normal logs, while the live telemetry feed behaves like a status display.
 - Console rendering must account for terminal width so the status row does not wrap into multiple physical lines.
+
+## 2026-05-05 - Standardize Supabase .env Loading On ASP.NET ConnectionStrings Convention
+
+Status:
+- accepted
+
+Decision:
+- Replace the custom `.env` parser with `DotNetEnv` and standardize local database configuration on `ConnectionStrings__Supabase`.
+
+Why:
+- Keeps startup simpler and closer to common ASP.NET configuration patterns.
+- Removes ambiguity between multiple possible connection-string variable names.
+- Makes `.env` behavior line up with `configuration.GetConnectionString("Supabase")`.
+
+Consequences:
+- Local `.env` setup for persistence should use `ConnectionStrings__Supabase` only.
+- The previous custom-only fallback key `SUPABASE_CONNECTION_STRING` is no longer part of the supported configuration path.
+- LMU and telemetry startup behavior remain independent of persistence because DbContext registration is still conditional.
+
+## 2026-05-05 - EF Core Migrations Run Automatically On Startup When Persistence Is Configured
+
+Status:
+- accepted
+
+Decision:
+- Resolve `TelemetryTrackerDbContext` during startup and call `dbContext.Database.Migrate()` automatically when the DbContext is registered.
+
+Why:
+- Removes manual migration steps during development and deployment.
+- Keeps persistence setup closer to zero-touch once a valid connection string is present.
+- Still preserves the current telemetry bring-up path because migration only runs when the DbContext exists.
+
+Consequences:
+- Hosted/server environments can apply pending EF Core migrations on boot automatically.
+- Local collector or misconfigured environments still start because missing DbContext registration skips the migration path entirely.
+- Migration failures are logged and do not block application startup, which favors telemetry availability over hard-failing on persistence startup problems at this stage.
+
 ## 2026-05-06 - Read Models Are Projected Asynchronously Behind Commands
 
 Status:
