@@ -198,6 +198,24 @@ Why:
 Consequences:
 - Important startup and warning messages should remain normal logs, while the live telemetry feed behaves like a status display.
 - Console rendering must account for terminal width so the status row does not wrap into multiple physical lines.
+## 2026-05-06 - Read Models Are Projected Asynchronously Behind Commands
+
+Status:
+- accepted
+
+Decision:
+- Future CQRS write flows should persist write-side data first, then hand read-model creation or refresh work to a background worker instead of blocking the API response.
+- Redis, if later introduced, should sit on top of the read side as a cache and should not replace projected read models or write-side persistence.
+
+Why:
+- Preserves fast and predictable write endpoint latency.
+- Fits the existing single-process ASP.NET Core architecture that already allows hosted background services.
+- Keeps the future CQRS path explicit so contributors do not accidentally couple command completion to read-model materialization.
+
+Consequences:
+- Future command handlers should be able to complete successfully before projection work finishes.
+- Read-side freshness becomes eventually consistent once projected views are introduced.
+- The first implementation should favor simple in-process coordination before any heavier durability pattern is justified.
 
 ## 2026-05-06 - Telemetry Trace Design Must Stay Useful For Future Setup Guidance
 
@@ -218,3 +236,40 @@ Consequences:
 - Future telemetry-shape decisions should be judged against setup-analysis usefulness as well as storage cost.
 - The project will likely need a way to associate laps with an applied setup snapshot, setup file, or stable setup fingerprint.
 - Setup-oriented analysis remains a future feature, but the data model should not close that door early.
+
+## 2026-05-06 - Parallel Agent Work Uses Git Worktrees With Workspace-Specific Runtime Settings
+
+Status:
+- accepted
+
+Decision:
+- Support parallel local AI chats or agents by using git worktrees instead of sharing one branch checkout.
+- Give each worktree its own generated local runtime settings such as `ASPNETCORE_URLS` so multiple local instances can run at the same time without port collisions.
+
+Why:
+- Multiple agents working in one checkout would constantly fight over branch switches and local edits.
+- The project is intended for incremental AI-assisted development, so safe parallel task isolation improves throughput without changing application architecture.
+- Keeping the setup local and script-driven avoids introducing heavier infrastructure.
+
+Consequences:
+- Local developer workflow now includes worktree bootstrap and teardown scripts.
+- Parallel local API runs should use workspace-specific runner scripts instead of shared launch-profile defaults.
+- Local `.env` values can be copied into new worktrees for convenience, while remaining gitignored.
+
+## 2026-05-06 - Product Planning Uses A Branch-Agnostic PM Chat
+
+Status:
+- accepted
+
+Decision:
+- Treat product and project planning as a separate branch-agnostic chat mode that prefers Notion, Linear, and GitHub over repository edits.
+- Use dedicated issue worktrees only when work transitions from planning into implementation.
+
+Why:
+- Planning and implementation have different needs and different risk profiles.
+- Keeping the PM chat branch-agnostic reduces accidental code changes in the wrong place while preserving a long-lived planning context.
+- This fits the new worktree-first implementation model without forcing every planning conversation into a branch.
+
+Consequences:
+- The repository should document a clear planning-chat pattern alongside the implementation-chat worktree pattern.
+- Planning chats should prepare implementation handoffs, but should not assume they can automatically create new top-level Codex chats.
