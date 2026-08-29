@@ -33,6 +33,14 @@ If the chat is intended to be planning-only, use the `agent/skills/pm-chat.md` s
 - Prefer merging `main` into a long-running branch over branching new work from another unfinished branch.
 - Treat the main checkout as coordination space, not the default place for parallel implementation work.
 
+### 1.7. Make Active Work Transferable
+
+- Push the task branch early enough that the work is not known only to one computer.
+- Open a draft pull request when implementation begins or as soon as the first viable commit exists.
+- Before pausing, switching sessions, changing agents, or changing computers, use `agent/skills/session-handoff/SKILL.md`.
+- Keep the latest `## HANDOFF` state in the draft PR and keep essential implementation work in signed, pushed commits.
+- Treat local Codex transcripts as helpful context, not as the canonical project record.
+
 ### 2. Generate Execution Plan
 
 - Ask AI to create or refine `agent/plan.md`
@@ -68,6 +76,7 @@ After each step:
 - ensure alignment with architecture
 - update `agent/progress.md` if the current state changed
 - update `agent/decisions.md` if a meaningful decision was made or revised
+- update the draft PR handoff before transferring incomplete work to another session or environment
 
 ### 5. Introduce Real Integrations Last
 
@@ -90,6 +99,7 @@ Use a dedicated planning chat when the goal is product management rather than im
 - Keep that chat focused on product decisions, specs, sequencing, and issue creation.
 - Prefer `Notion`, `Linear`, and `GitHub` over repo edits.
 - When work should move into implementation, prepare the issue, branch, worktree, and handoff prompt for a separate implementation chat.
+- For an existing implementation, resume from its branch, draft PR, and latest `## HANDOFF` comment instead of creating a replacement task branch.
 - Do not assume a new top-level Codex chat can be created automatically unless the platform explicitly supports it.
 
 ## Key Principles

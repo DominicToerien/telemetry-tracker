@@ -19,6 +19,8 @@
 - Pull or merge `main` forward into long-running branches to stay current instead of branching new work from in-progress branches.
 - A branch-agnostic PM chat should default to planning, issue management, and documentation coordination rather than repository edits.
 - A PM chat may stay on `main` or another coordination checkout, but implementation work should move to a dedicated issue worktree.
+- Before active implementation moves to another session, agent, or computer, use `agent/skills/session-handoff/SKILL.md`.
+- Essential cross-session work must be committed with a verified signature, pushed, and described in the task's draft PR; do not rely on an uncommitted diff or local transcript as the only copy.
 
 ## Naming Conventions (Tickets and Branches)
 

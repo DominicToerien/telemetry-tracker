@@ -18,6 +18,8 @@ These are lightweight operational guides the agent should use when they match th
   Stay within the requested phase or slice.
 - [progress-tracking.md](/abs/path/c:/Users/toeri/source/repos/telemetry-tracker/agent/skills/progress-tracking.md)
   Keep project progress current when delivery status changes.
+- [session-handoff/SKILL.md](./session-handoff/SKILL.md)
+  Transfer or resume implementation work safely across Codex sessions, agents, and computers using pushed branches and draft pull requests.
 - [testing.md](/abs/path/c:/Users/toeri/source/repos/telemetry-tracker/agent/skills/testing.md)
   Add focused tests when logic merits them.
 - [vertical-slice.md](/abs/path/c:/Users/toeri/source/repos/telemetry-tracker/agent/skills/vertical-slice.md)
@@ -29,3 +31,4 @@ These are lightweight operational guides the agent should use when they match th
 - Read `agent/specs/` from the agent entry point before using task skills.
 - Select and use relevant skills whenever they clearly fit the task.
 - Do not force every skill on every task; choose the ones that materially improve correctness, consistency, or workflow discipline.
+- Always use the session-handoff skill when pausing active implementation for another session, agent, or computer, or when resuming handed-off work.

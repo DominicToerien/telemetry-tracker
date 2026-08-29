@@ -311,6 +311,8 @@ Recommended split:
 
 If planning work turns into implementation, the planning chat should prepare the issue, branch, worktree, and handoff prompt for a separate implementation chat.
 
+When implementation pauses or moves to another computer, use [the session handoff skill](./agent/skills/session-handoff/SKILL.md). Push a signed commit, keep a draft pull request open, and update its `## HANDOFF` section so the receiving session can verify and continue the work without depending on a local transcript.
+
 Branching rule for implementation chats:
 
 - start every new issue branch from `main`

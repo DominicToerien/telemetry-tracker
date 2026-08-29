@@ -362,3 +362,26 @@ Alternatives considered:
 Tradeoffs:
 - Parser and writer development needs more representative fixtures before setup export is safe.
 - The current fixture remains useful for lossless parsing, storage, and versioning experiments.
+
+## 2026-08-29 - Cross-Session Work Uses Branch And Draft PR Handoffs
+
+Status:
+- accepted
+
+Decision:
+- Make signed, pushed branch commits plus a draft pull request and structured `## HANDOFF` state the canonical transfer mechanism between Codex sessions, agents, and computers.
+- Keep project-wide progress and decisions in the existing durable agent documents while keeping temporary task state in the draft PR.
+
+Why:
+- Local transcripts, worktrees, and uncommitted changes are not reliably available on another computer.
+- A branch and draft PR provide inspectable code, task context, validation status, and a durable recovery point without polluting long-lived project documentation with ephemeral notes.
+
+Alternatives considered:
+- Depend on Codex session history alone.
+- Store one shared handoff file in the repository root.
+- Require work to be complete before it can move between environments.
+
+Tradeoffs:
+- Incomplete but valuable work may use explicitly labelled signed WIP commits.
+- Contributors must keep the draft PR handoff current when work pauses.
+- A receiving agent must still verify the branch and validation results rather than trusting the handoff text blindly.
