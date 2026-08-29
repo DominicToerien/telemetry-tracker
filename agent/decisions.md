@@ -339,3 +339,26 @@ Tradeoffs:
 
 Supersedes:
 - Refines `Single Process ASP.NET Core API` and `Single Codebase With Collector And Hosted Server Roles` by moving them out of the primary MVP experience; their reusable foundations and later hosted direction remain valid.
+
+## 2026-08-29 - LMU Setup Examples Are Non-Authoritative Format Fixtures
+
+Status:
+- accepted
+
+Decision:
+- Keep the salvaged `.svm` example as a renamed, documented format fixture.
+- Treat setup files as car-specific source artifacts whose unknown fields, comments, and ordering should be preserved until real round-trip behaviour is validated.
+- Require representative fixtures and LMU validation before implementing setup export.
+
+Why:
+- The available example comes from a ModDev pace-car path, contains mostly commented defaults, and cannot define the setup contract for every LMU car.
+- `/create-setup` needs concrete file-shape context, but unsafe generalization would produce invalid or misleading setup changes.
+
+Alternatives considered:
+- Merge the old RE-9 documentation unchanged.
+- Discard the setup example entirely.
+- Treat the example as a universal setup schema.
+
+Tradeoffs:
+- Parser and writer development needs more representative fixtures before setup export is safe.
+- The current fixture remains useful for lossless parsing, storage, and versioning experiments.

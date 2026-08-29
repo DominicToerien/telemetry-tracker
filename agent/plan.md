@@ -268,6 +268,13 @@ Rules:
 - retain enough provenance to compare a setup against the laps driven with it
 - require explicit user confirmation before export or application
 
+Setup-file reference rules:
+- `references/lmu-setups/992s-pc-moddev-example.svm` is a non-authoritative format fixture from a ModDev pace-car path
+- preserve unknown fields, comments, and ordering until real LMU round-trip behaviour proves normalization is safe
+- do not generalize setting availability, indices, ranges, or units across cars
+- collect representative, provenance-documented fixtures for supported cars before implementing setup export
+- validate parser and writer behaviour separately from the AI skill that proposes changes
+
 ## Telemetry Sample Format
 
 Each lap trace sample should stay compact and consistent:

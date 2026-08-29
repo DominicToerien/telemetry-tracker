@@ -216,6 +216,12 @@ Reference headers:
 - `references/lmu-sdks/InternalsPlugin.hpp`
 - `references/lmu-sdks/PluginObjects.hpp`
 
+Setup-format context:
+- `references/lmu-setups/README.md`
+- `references/lmu-setups/992s-pc-moddev-example.svm`
+
+The `.svm` file is a non-authoritative ModDev pace-car example. Use it to understand and preserve the file shape, not as proof that settings, ranges, or units apply to other LMU cars.
+
 ## Failure Handling Expectations
 
 If LMU shared memory is unavailable:

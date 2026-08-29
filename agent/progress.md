@@ -32,6 +32,7 @@ It should be updated whenever implementation meaningfully changes delivery statu
 - EF Core startup auto-migration is in place when the DbContext is registered
 - local parallel-agent worktree scripts are in place for branch-isolated chats with workspace-specific ports
 - branch-agnostic PM chat guidance is in place for planning-first workflows
+- a non-authoritative LMU `.svm` format fixture is documented for future setup parsing and `/create-setup` work
 
 ## In Progress
 
