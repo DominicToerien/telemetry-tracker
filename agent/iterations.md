@@ -30,7 +30,7 @@
 - Storage inefficient
 - AI context too noisy
 
-## Current Approach
+## Third Approach
 
 - ASP.NET Core Web API
 - Vertical Slice Architecture plus CQRS
@@ -57,3 +57,17 @@ The biggest improvement came from:
 ## Current Repository Reality
 
 The repository currently has LMU shared-memory ingestion foundations and telemetry status endpoints in place. The broader lap-tracking, Supabase, mock source, and AI workflow described in the current plan are the next evolution, not completed functionality.
+
+## Current Approach - Skills-First Terminal Workspace
+
+- local-first CLI/TUI as the primary MVP product
+- sessions presented as directory-like contexts and laps as file-like items
+- one local telemetry owner with live views available in multiple terminals
+- stable JSON CLI operations for session, lap, comparison, telemetry, and setup data
+- Codex/Claude skills as the initial coaching and setup layer
+- guided, versioned setup proposals with explicit confirmation before export
+- native BYOK chat, MCP, hosted API/sync, Supabase, and frontend retained as later phases
+
+## Why This Evolution
+
+The API-first plan established useful architecture but did not yet provide a compelling user-facing workflow. The terminal workspace turns the existing LMU foundation and planned lap model into an immediately usable product. Skills shorten the path to useful AI coaching while stable CLI commands ensure that later MCP, native AI, API, and frontend work can reuse rather than replace the MVP foundation.

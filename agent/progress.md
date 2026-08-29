@@ -6,11 +6,11 @@ It should be updated whenever implementation meaningfully changes delivery statu
 
 ## Status Summary
 
-- Current date: 2026-05-04
-- Overall phase: foundation moving toward the broader telemetry-tracking vertical slice
+- Current date: 2026-08-28
+- Overall phase: LMU foundation moving toward the skills-first local terminal MVP
 - App state: runnable
 - Telemetry source state: LMU shared-memory reader is producing live player telemetry values, broader mock-plus-tracking pipeline not yet implemented
-- Runtime direction: single codebase, planned dual-role operation (`Collector` local + hosted `Server`)
+- Runtime direction: local-first telemetry host plus CLI/TUI and skills; hosted `Collector`/`Server` expansion later
 
 ## Completed
 
@@ -37,9 +37,10 @@ It should be updated whenever implementation meaningfully changes delivery statu
 
 - Expanding the project from LMU status verification into the broader lap-tracking and persistence workflow defined in `agent/plan.md`
 - Establishing the telemetry status feature as the architecture template for future slices
-- Establishing the persistence foundation so later lap-storage slices can target Supabase cleanly
+- Preserving the existing Supabase foundation for later hosted expansion while planning local-first MVP persistence
 - Tightening the LMU bring-up path now that real in-game telemetry data is flowing
 - Defining collector-to-hosted ingestion direction so local clients do not need direct DB credentials
+- Reframing the initial product surface around session/lap terminal navigation and stable skill-facing CLI commands
 
 ## Not Started
 
@@ -54,6 +55,11 @@ It should be updated whenever implementation meaningfully changes delivery statu
 - broader vertical-slice refactor beyond the telemetry status slice
 - tracking start/stop state and endpoints
 - collector ingestion endpoints and runtime role mode switch
+- first-class local session model and setup revision history
+- scriptable session/lap/comparison/setup CLI commands
+- interactive session/lap TUI navigation
+- skills for session review, lap comparison, and guided setup creation
+- multi-terminal attachment to one local telemetry owner
 
 ## Current Focus
 
@@ -64,6 +70,7 @@ It should be updated whenever implementation meaningfully changes delivery statu
 - Keep parallel local AI work isolated through worktrees rather than shared branch switching.
 - Make dedicated worktrees the default expectation for any chat that edits the repository.
 - Keep planning-first conversations branch-agnostic until they intentionally hand work off to an implementation chat.
+- Make local CLI/TUI and skills the first complete product loop; retain MCP, native BYOK chat, hosted API/sync, and frontend as later adapters.
 
 ## Known Constraints
 
@@ -75,8 +82,8 @@ It should be updated whenever implementation meaningfully changes delivery statu
 
 ## Next Recommended Slice
 
-- Build explicit tracking state and tracking endpoints on top of the now-working LMU live telemetry feed.
-- Then add lap buffering and downsampled lap capture.
+- Build explicit tracking state and lap capture on top of the working LMU feed, shaped as reusable application handlers rather than HTTP-first behaviour.
+- Then add first-class local sessions and stable JSON CLI queries so the initial skills have a dependable data interface.
 
 ## Update Rule
 

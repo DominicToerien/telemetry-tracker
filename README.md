@@ -1,8 +1,14 @@
 # telemetry-tracker
 
-`telemetry-tracker` is a `net8.0` ASP.NET Core application for Le Mans Ultimate telemetry collection and analysis.
+`telemetry-tracker` is a `net8.0` application for Le Mans Ultimate telemetry collection, terminal-based analysis, and AI-assisted coaching.
 
-It is designed to support two runtime modes from one codebase:
+The primary MVP direction is a local-first Codex/Claude-style CLI/TUI:
+- browse sessions as directory-like contexts and laps as file-like items
+- view or follow live telemetry, including from a separate terminal
+- compare laps and inspect recorded setup context
+- use skills as the initial AI layer for coaching and guided setup proposals
+
+Later phases retain the planned runtime modes from one codebase:
 - `Collector` mode (user machine): reads LMU shared memory locally and sends telemetry/lap payloads to a hosted API.
 - `Server` mode (hosted): accepts telemetry ingestion, persists lap summaries/traces, and serves query/analysis endpoints.
 
@@ -12,7 +18,7 @@ The current implementation is intentionally narrow:
 - It exposes connection/debug status endpoints for bring-up and validation.
 - It renders a live single-line console telemetry status display for local verification while driving.
 - It exposes that telemetry status through a dedicated `Features/TelemetryStatus` vertical slice.
-- It does not yet include the full collector ingestion flow, persistence slices, analytics, or a frontend.
+- It does not yet include session/lap capture, the interactive TUI, skill-facing CLI operations, hosted ingestion, analytics, or a frontend.
 
 ## Project Status
 

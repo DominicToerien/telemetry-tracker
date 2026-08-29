@@ -2,43 +2,46 @@
 
 ## Summary
 
-Build a lightweight single-process telemetry analysis service for Le Mans Ultimate in ASP.NET Core Web API using C#, Vertical Slice Architecture, and CQRS. The system continuously reads telemetry for live verification, allows explicit start/stop tracking, stores one lap summary plus one detailed lap trace per completed lap in Supabase Postgres, and exposes thin API endpoints for tracking control, telemetry status, lap retrieval, and AI-assisted driving-performance questions.
+Build a local-first telemetry workspace for Le Mans Ultimate using C#, Vertical Slice Architecture, and CQRS. The primary MVP is a Codex/Claude-style terminal application. It continuously reads telemetry, captures sessions and completed laps, presents sessions as directory-like contexts and laps as file-like items, and exposes stable CLI operations that skills use for coaching, comparison, and setup creation.
 
 The goal is a clean working vertical slice with strong foundations and deliberately limited scope.
 
-Deployment model for this plan:
-- one codebase
-- two runtime roles: local `Collector` and hosted `Server`
-- collector reads local LMU data and sends tracked lap payloads to server ingestion endpoints
+Evolution model for this plan:
+- MVP: local telemetry host, local persistence, CLI/TUI, and skills
+- next: native bring-your-own-key terminal chat and MCP
+- later: hosted API, synchronization, Supabase persistence, and graphical frontend
+- all interfaces reuse the same application commands and queries
 
 ## Product Goal
 
-Deliver a running backend service where:
+Deliver a running terminal product where:
 - telemetry is continuously visible in the console
 - tracking is explicitly controlled by the user
-- each completed tracked lap saves:
+- sessions and laps can be browsed and selected as workspace context
+- each completed tracked lap saves locally:
   - one relational lap summary
   - one JSONB lap trace
-- the API exposes saved lap data
-- AI insights are based on meaningful telemetry context
+- machine-readable CLI commands expose saved lap data
+- skills provide the initial AI analysis and setup workflows
+- live telemetry can be displayed in the main TUI or followed from another terminal
 
 ## Technology and Constraints
 
-- Platform: ASP.NET Core Web API
+- Platform: .NET 8 local CLI/TUI with reusable application handlers
 - Language: C#
 - Architecture: Vertical Slice Architecture + CQRS
-- Runtime: single process
+- Runtime: one local telemetry owner with one or more terminal clients
 - Background processing: `HostedService` / `BackgroundService`
-- Storage: Supabase Postgres
-- API style: Minimal APIs or thin endpoints
+- MVP storage: local-first persistence; Supabase is deferred to hosted synchronization
+- Interface style: thin CLI/TUI commands first; MCP and HTTP adapters later
 - Logging: console logging
 - Testing: unit tests where they add clear value
 
-Do not introduce:
+Do not introduce in the MVP:
 - microservices
 - message brokers
 - complex infrastructure
-- frontend/UI
+- graphical frontend
 - authentication/authorization unless explicitly requested
 
 ## Architecture Principles
@@ -58,7 +61,7 @@ Do not introduce:
 Future implementation direction for CQRS in this project:
 - treat write-side persistence as the source of truth
 - allow command handlers to persist write-side data and return without waiting for read-model materialization
-- defer read-model creation or refresh to a background worker when projection work could slow an API response
+- defer read-model creation or refresh to a background worker when projection work could slow an interactive command
 - keep projection execution in-process at first using `HostedService` / `BackgroundService` friendly patterns
 - evolve to more durable projection coordination only when real reliability or scale needs justify it
 - treat Redis, if later added, as a read-side cache layered on top of projected read models rather than as the source of truth
@@ -77,7 +80,7 @@ Future implementation direction for CQRS in this project:
 
 ## Core System Design
 
-The application is a single ASP.NET Core Web API process that:
+The application provides a local telemetry host and terminal clients that:
 
 - runs continuously
 - starts a telemetry background service at boot
@@ -85,11 +88,51 @@ The application is a single ASP.NET Core Web API process that:
 - logs compact telemetry status to the console
 - only saves telemetry when tracking is explicitly active
 - saves one summary and one detailed trace per completed lap
-- exposes API endpoints for tracking, status, saved laps, and AI analysis
+- expose commands for tracking, status, sessions, laps, comparisons, and setup revisions
+- allow multiple terminals to observe the same telemetry owner
 
-Across environments this process should support:
-- Collector mode on user machines for LMU-local acquisition
-- Server mode in hosted environment for ingest/persist/query/AI
+Later phases add collector/server roles, ingestion, synchronization, hosted querying, and a frontend without removing the local or skills-based paths.
+
+## Terminal Workspace Model
+
+- a session is a first-class context containing car, circuit, conditions, laps, and setup history
+- a lap is selectable within its parent session
+- the prompt displays the current context, for example `telemetry-tracker / spa-2026-08-28 / lap-7`
+- slash commands perform deterministic operations
+- ordinary language is handled by an external skill initially and by optional native chat later
+- `/show-telemetry` toggles a live view in the TUI
+- `telemetry-tracker telemetry --follow` supports a dedicated telemetry terminal
+
+Initial command families:
+- session navigation: `/sessions`, `/open-session`, `/back`
+- lap navigation: `/laps`, `/open-lap`, `/compare`
+- live operation: `/show-telemetry`, `/tracking start`, `/tracking stop`
+- setup workflow: `/setup`, `/setups`, `/create-setup`, `/compare-setup`, `/apply-setup`
+
+## Skills-First Architecture
+
+Skills remain a supported product interface across all phases.
+
+The MVP should first expose deterministic, structured commands such as:
+
+```text
+telemetry-tracker sessions list --json
+telemetry-tracker laps list --session <id> --json
+telemetry-tracker laps show <id> --json
+telemetry-tracker laps compare <lap-a> <lap-b> --json
+telemetry-tracker setup show --lap <id> --json
+```
+
+Skills use these commands to select evidence, ask for driver feedback, explain uncertainty, and produce useful coaching. They must not invent unavailable telemetry or setup fields.
+
+The `/create-setup` skill:
+1. resolves the active session, car, reference lap, and baseline setup
+2. asks what handling problem the driver experienced
+3. inspects relevant telemetry and comparison laps
+4. proposes a small, bounded set of setup changes
+5. explains evidence, expected effect, and trade-offs
+6. saves a versioned proposal
+7. requires explicit confirmation before exporting or applying it to LMU
 
 ## Tracking Behaviour
 
@@ -113,15 +156,13 @@ Telemetry is always readable, but persistence is controlled.
   - both are saved to the database
   - the buffer is cleared
 
-### Tracking control endpoints
+### Tracking control commands
 
-- `POST /tracking/start`
-- `POST /tracking/stop`
-- `GET /tracking/status`
+- `/tracking start`
+- `/tracking stop`
+- `/tracking status`
 
-Collector-to-server ingestion endpoints (to add):
-- `POST /ingest/laps`
-- optional heartbeat endpoint for collector connection visibility
+Equivalent scriptable CLI commands should return structured output. Collector-to-server ingestion is deferred to the hosted expansion phase.
 
 ## Live Console Verification
 
@@ -147,10 +188,18 @@ When saving:
 
 ## Data Storage Model
 
-Storage is Supabase Postgres with a two-table model:
+MVP storage is local-first with four conceptual record types:
 
-1. `lap_summaries`
-2. `lap_traces`
+1. `sessions`
+2. `lap_summaries`
+3. `lap_traces`
+4. `setup_revisions`
+
+An embedded store such as SQLite is the expected MVP implementation. The precise provider should be confirmed in the persistence slice. Hosted Supabase can later represent the same concepts for synchronization and remote access.
+
+### sessions
+
+Fields should include a stable identifier plus available circuit, car, start/end, conditions, and active setup references. Do not invent values that LMU does not reliably expose.
 
 ### lap_summaries
 
@@ -191,13 +240,33 @@ Fields:
 - `LapSummaryId` (FK)
 - `SampleRateHz`
 - `TraceFormatVersion`
-- `Samples` (JSONB)
+- `Samples` (structured JSON; JSONB when hosted in Postgres)
 - `CreatedAt`
 
 Purpose:
 - deeper analysis
 - optional input for AI when detailed insight is needed
 - not the default shape for general querying
+
+### setup_revisions
+
+Fields should include:
+- `Id`
+- `SessionId`
+- optional `SourceLapId`
+- optional parent revision identifier
+- car and setup-format identifiers
+- human-readable name
+- structured setup values or a safely preserved source artifact
+- proposal rationale and expected trade-offs
+- status such as baseline, proposed, confirmed, exported, or discarded
+- creation timestamp
+
+Rules:
+- never overwrite the baseline setup when creating a proposal
+- distinguish what the game supplied from what a skill inferred or proposed
+- retain enough provenance to compare a setup against the laps driven with it
+- require explicit user confirmation before export or application
 
 ## Telemetry Sample Format
 
@@ -291,8 +360,9 @@ Responsibility:
 - connectivity status
 - packets/sec and latest live values for console and API
 
-Endpoints:
-- `GET /telemetry/status`
+MVP interfaces:
+- `/show-telemetry`
+- `telemetry-tracker telemetry status --json`
 
 Expected shape:
 - source name
@@ -310,10 +380,10 @@ Responsibility:
 - state transitions
 - current tracking session metadata
 
-Endpoints:
-- `POST /tracking/start`
-- `POST /tracking/stop`
-- `GET /tracking/status`
+MVP interfaces:
+- `/tracking start`
+- `/tracking stop`
+- `/tracking status`
 
 Rules:
 - starting tracking begins in-memory buffering for the active lap
@@ -337,54 +407,56 @@ Rules:
 
 ### 4. Saved Laps Querying
 
-Endpoints:
-- `GET /laps`
-- `GET /laps/{id}`
-
 Expected behaviour:
-- `GET /laps` returns lightweight lap summary records suitable for browsing and filtering
-- `GET /laps/{id}` returns the selected lap summary plus its trace when needed for drill-down
+- `/sessions` and `/laps` return lightweight records suitable for browsing and filtering
+- `/open-lap` returns the selected lap summary plus its trace when needed for drill-down
+- scriptable equivalents return stable JSON for skills
 - future read-heavy views may be served from dedicated projected read models instead of directly from write-side tables
 
-### 5. AI Analysis
-
-Endpoint:
-- `POST /ask`
+### 5. Skill Operations
 
 Responsibility:
-- build compact structured prompts
-- use `LapSummary` as the primary context
-- include `LapTrace` only when the question needs deeper analysis
-- avoid shipping unnecessary telemetry into the prompt
+- provide stable JSON CLI output for sessions, laps, comparisons, telemetry, and setups
+- keep analysis evidence compact and structured
+- allow Codex/Claude skills to coach without direct database access
+- support guided, versioned setup proposals
 
-## API Surface
+## MVP Command Surface
 
 ### Tracking
 
-- `POST /tracking/start`
-- `POST /tracking/stop`
-- `GET /tracking/status`
+- `/tracking start`
+- `/tracking stop`
+- `/tracking status`
 
 ### Telemetry
 
-- `GET /telemetry/status`
+- `/show-telemetry`
+- `telemetry-tracker telemetry --follow`
+- `telemetry-tracker telemetry status --json`
 
 ### Laps
 
-- `GET /laps`
-- `GET /laps/{id}`
+- `/sessions`, `/open-session`
+- `/laps`, `/open-lap`, `/compare`
+- equivalent scriptable commands with `--json`
 
-### AI
+### Setups
 
-- `POST /ask`
+- `/setup`, `/setups`
+- `/create-setup`
+- `/compare-setup`
+- `/apply-setup` with explicit confirmation
 
-### Ingestion (Hosted Server)
+### Later Adapters
 
-- `POST /ingest/laps` (collector submits completed lap summary plus trace payload)
-- future: collector heartbeat/status endpoint if needed
+- MCP tools over the same operations
+- native BYOK terminal chat
+- HTTP ingestion, query, and AI endpoints
+- hosted synchronization and frontend
 
 Implementation preference:
-- thin endpoints
+- thin interface adapters
 - request/handler per feature
 - no large controller/service orchestration layer
 
@@ -401,11 +473,10 @@ End-to-end flow:
 7. lap change is detected
 8. lap summary is calculated
 9. lap trace JSON payload is created
-10. summary and trace are saved to Supabase Postgres
-11. if later query shapes become expensive, projection work is queued for a background worker instead of blocking the write response
-12. projected read models are refreshed asynchronously
-13. APIs expose saved lap data
-14. `/ask` builds a prompt from summary plus optional trace and returns AI-assisted analysis
+10. session, summary, trace, and setup association are saved locally
+11. CLI/TUI queries expose navigable session and lap context
+12. skills consume structured commands for coaching and setup workflows
+13. later MCP, native AI, HTTP, synchronization, and frontend adapters reuse the same handlers
 
 ## Suggested Vertical Slice Structure
 
@@ -413,14 +484,16 @@ Organise by feature rather than technical layer. Likely top-level slices:
 
 - `Features/TelemetryStatus`
 - `Features/Tracking`
-- `Features/Ingestion`
+- `Features/Sessions`
 - `Features/Laps`
-- `Features/Ask`
+- `Features/Setups`
+- `Features/SkillOperations`
+- later: `Features/Ingestion` and `Features/Ask`
 - `Infrastructure/Persistence`
 - `Infrastructure/TelemetrySources`
 
 Each feature should keep its own:
-- endpoint
+- command/query handler and thin interface adapter
 - request/response DTOs
 - handler
 - validation where needed
@@ -440,7 +513,8 @@ Add unit tests where they provide clear value. Prioritise:
 - sampling logic
 - tracking state transitions
 - lap detection
-- prompt building
+- structured skill-facing output and comparison evidence selection
+- setup proposal validation and confirmation boundaries
 - telemetry source behaviour
 
 Also keep focused tests around:
@@ -466,59 +540,57 @@ Avoid:
 
 ## Phased Implementation Plan
 
-### Phase 1. Project setup
+### Phase 1. Local telemetry host and tracking core
 
-- establish folder structure aligned with vertical slices
-- keep console logging simple
-- wire core app bootstrapping and hosted services
+- preserve and reuse the working LMU reader
+- introduce explicit tracking state, lap buffering, boundary detection, summaries, and traces
+- ensure one local component owns LMU shared-memory acquisition
 
-### Phase 2. Mock telemetry + console
+### Phase 2. Local session and setup persistence
 
-- implement `MockTelemetrySource`
-- continuously read mock telemetry
-- show compact once-per-second console output
+- make sessions first-class records
+- persist laps and traces locally
+- capture the setup associated with a session/lap where LMU provides a reliable source
+- store versioned setup proposals without overwriting the baseline
 
-### Phase 3. Tracking state
+### Phase 3. Scriptable CLI
 
-- add start/stop/status endpoints
-- implement explicit tracking lifecycle and state transitions
+- add deterministic session, lap, telemetry, comparison, and setup commands
+- provide stable JSON output for skills and automation
+- support `telemetry --follow` from a separate terminal
 
-### Phase 4. Lap summary calculation
+### Phase 4. Interactive terminal workspace
 
-- detect lap completion
-- compute lap summary metrics from buffered samples
+- add session/lap navigation and context-aware prompt
+- add slash-command routing
+- add live telemetry display without blocking navigation
+- keep presentation thin over application commands and queries
 
-### Phase 5. Lap trace generation
+### Phase 5. Initial skills
 
-- create compact JSONB trace samples
-- apply controlled downsampling
+- provide session review and lap comparison skills
+- add a guided `/create-setup` workflow
+- require driver feedback and explicit confirmation before setup export
+- validate the drive, inspect, compare, ask, adjust loop
 
-### Phase 6. Supabase persistence
+### Phase 6. Native AI and MCP
 
-- add Postgres persistence for summaries and traces
-- keep schema simple and direct
+- add optional bring-your-own-key terminal chat
+- store credentials securely where practical
+- expose mature application operations as MCP tools
+- keep skills fully supported
 
-### Phase 7. API endpoints
+### Phase 7. Hosted expansion
 
-- add saved laps endpoints
-- keep response shapes lightweight and useful
+- add collector/server runtime roles
+- add ingestion and synchronization
+- use Supabase for hosted persistence
+- add HTTP query/AI endpoints and authentication when required
 
-### Phase 8. LLM integration
+### Phase 8. Frontend and broader product polish
 
-- add `/ask`
-- implement compact prompt building from summary plus optional trace
-
-### Phase 9. LMU integration
-
-- switch from mock-only to configurable mock/LMU source selection
-- validate LMU telemetry against the SDK headers
-
-### Phase 10. Demo polish
-
-- improve ergonomics
-- tighten logs
-- improve error messages
-- clean up rough edges in the vertical slice
+- add a graphical frontend over the established application/API contracts
+- improve visualization, sharing, and longer-term analytics
 
 ### Later Architectural Evolution
 
@@ -531,12 +603,14 @@ Avoid:
 
 Do not add in this scope unless explicitly requested:
 
-- frontend or dashboard UI
+- graphical frontend during the MVP
 - auth
 - background job systems
 - distributed architecture
 - event buses
 - generic plugin frameworks
+- hosted synchronization
+- automatic setup application without confirmation
 - premature analytics pipelines
 
 ## Current Baseline
@@ -554,25 +628,27 @@ This baseline should be evolved toward the feature slices above rather than repl
 
 Unless requirements change, use these defaults:
 
-- single process only
+- one local telemetry owner with multiple client terminals where needed
 - console logging only
-- thin endpoints or Minimal APIs
-- Supabase Postgres as the only persistence store
+- thin CLI/TUI commands; thin MCP and HTTP adapters later
+- local-first persistence for the MVP; Supabase later for hosted data
 - database credentials only in hosted server configuration
 - one current tracked lap buffered in memory
 - no persistence when tracking is off
-- `LapSummary` is the default input for AI prompts
+- `LapSummary` is the default evidence supplied to skills
 - `LapTrace` is included only when extra detail is needed
 - unit tests only where logic is meaningful enough to justify them
 
 ## Expected Outcome
 
-A running service where:
+A running terminal workspace where:
 
 - telemetry is continuously visible in the console
 - tracking is explicitly controlled
 - each completed lap saves:
-  - a summary in Postgres
+  - a summary in local persistence
   - a detailed trace in JSONB
-- the API exposes lap data cleanly
-- AI insights are based on meaningful telemetry rather than raw packet dumps
+- sessions and laps are navigable contexts
+- live telemetry can be followed from one or more terminal views
+- skills use structured CLI data for coaching and versioned setup proposals
+- later MCP, native AI, hosted API, synchronization, and frontend work can reuse the same capabilities

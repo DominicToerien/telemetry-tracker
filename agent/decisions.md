@@ -308,3 +308,34 @@ Why:
 Consequences:
 - The repository should document a clear planning-chat pattern alongside the implementation-chat worktree pattern.
 - Planning chats should prepare implementation handoffs, but should not assume they can automatically create new top-level Codex chats.
+
+## 2026-08-28 - Skills-First Local Terminal MVP
+
+Status:
+- accepted
+
+Decision:
+- Make a Codex/Claude-style local CLI/TUI the primary MVP surface.
+- Treat sessions as directory-like contexts and laps as file-like items within them.
+- Use stable machine-readable CLI operations plus Codex/Claude skills as the initial AI experience.
+- Keep skills supported when native bring-your-own-key chat, MCP, hosted APIs, synchronization, and a graphical frontend are added later.
+- Make setup creation a guided, versioned proposal workflow that requires driver feedback and explicit confirmation before export or application.
+
+Why:
+- The terminal workspace creates an immediately usable product instead of requiring users to call backend endpoints.
+- Skills provide coaching and setup workflows sooner by using an existing agent experience.
+- Stable application commands prevent the skills MVP from becoming throwaway work and provide a foundation for later adapters.
+- Local-first operation matches LMU shared-memory constraints and avoids premature hosted infrastructure.
+
+Alternatives considered:
+- Continue with an HTTP API and Supabase as the primary MVP surface.
+- Build native AI chat before exposing deterministic CLI operations.
+- Make MCP the first integration layer.
+
+Tradeoffs:
+- Terminal interaction and local multi-client coordination become earlier engineering priorities.
+- Hosted ingestion, Supabase-first persistence, `/ask`, and a graphical frontend move to later phases.
+- Skills depend on a stable structured CLI and cannot replace deterministic access to telemetry data.
+
+Supersedes:
+- Refines `Single Process ASP.NET Core API` and `Single Codebase With Collector And Hosted Server Roles` by moving them out of the primary MVP experience; their reusable foundations and later hosted direction remain valid.
