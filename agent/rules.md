@@ -6,7 +6,7 @@
 - Keep the app runnable after every change.
 - Prefer simple implementations over abstractions.
 - Do not introduce new infrastructure unless requested.
-- Use `MockTelemetrySource` before LMU integration when building the larger telemetry pipeline.
+- Preserve the working LMU integration as the real telemetry foundation; use `MockTelemetrySource` where deterministic development or tests need it.
 - Do not persist raw telemetry continuously.
 - Follow Vertical Slice Architecture plus CQRS.
 - Keep Supabase/Postgres credentials server-side only; do not require DB secrets in local collector runtime.
@@ -72,7 +72,9 @@ Examples:
 
 ## Additional Working Rules
 
-- Keep endpoints thin.
+- Keep CLI/TUI commands, skill adapters, and later MCP/HTTP endpoints thin.
+- Treat stable machine-readable CLI operations as the first AI integration boundary.
+- Keep skills supported when native AI, MCP, hosted APIs, synchronization, and a frontend are added later.
 - Prefer feature-local handlers and data access over large shared service layers.
 - Add tests where logic is meaningful, not as ceremony.
 - Preserve console visibility for live telemetry verification.

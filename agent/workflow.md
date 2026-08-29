@@ -71,14 +71,16 @@ After each step:
 
 ### 5. Introduce Real Integrations Last
 
-- always build against mocks first
-- only integrate external systems such as LMU, database, and LLM once the flow works end-to-end
-- when integrating real persistence, keep DB access on hosted server side and use collector-to-server ingest from local clients
+- preserve the working LMU integration as the real telemetry foundation
+- use deterministic mocks when they materially improve isolated development and repeatable tests
+- prove the local tracking, session, lap, and skill-facing CLI flow before adding native LLM, MCP, hosted synchronization, or frontend integrations
+- keep hosted database credentials server-side when hosted persistence is introduced
 
 ### 6. Validate with Real Use Cases
 
-- use actual API calls
-- ask realistic questions
+- use actual CLI/TUI commands and stable JSON output
+- exercise the current HTTP status/debug endpoints only as implementation bring-up surfaces
+- run realistic skill workflows such as lap comparison and guided setup creation
 - verify outputs match expectations
 
 ## PM Chat Pattern
@@ -129,8 +131,8 @@ Avoid by:
 Avoid by:
 
 - continuous console output
-- API-first design
-- realistic example queries
+- a usable session/lap terminal workflow
+- realistic CLI commands, skill questions, and setup proposals
 - preserving a runnable app at all times
 
 ## Outcome

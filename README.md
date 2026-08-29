@@ -8,7 +8,7 @@ The primary MVP direction is a local-first Codex/Claude-style CLI/TUI:
 - compare laps and inspect recorded setup context
 - use skills as the initial AI layer for coaching and guided setup proposals
 
-Later phases retain the planned runtime modes from one codebase:
+Later hosted phases retain the planned runtime modes from one codebase; they are not the immediate MVP:
 - `Collector` mode (user machine): reads LMU shared memory locally and sends telemetry/lap payloads to a hosted API.
 - `Server` mode (hosted): accepts telemetry ingestion, persists lap summaries/traces, and serves query/analysis endpoints.
 
@@ -152,9 +152,9 @@ Returns a lightweight debug view of the latest copied snapshot metadata, such as
 
 This endpoint is for bring-up/debugging and should not be treated as a stable public telemetry contract yet.
 
-## Deployment Direction
+## Later Hosted Deployment Direction
 
-Planned deployment model:
+Deferred deployment model after the local terminal and skills workflow is useful:
 - user runs local collector build on Windows
 - collector reads LMU shared memory and posts tracked lap payloads to hosted API
 - hosted API owns Supabase credentials and persistence
@@ -328,14 +328,15 @@ Branching rule for implementation chats:
 
 - Keep `agent/plan.md` updated when scope or architecture changes.
 - Keep `agent/` and `agent/specs/` aligned when the project direction changes.
-- New user-facing behaviour should prefer `Features/{FeatureName}` slices with thin endpoints and explicit handlers.
+- New user-facing behaviour should prefer `Features/{FeatureName}` slices with explicit handlers and thin CLI/TUI adapters.
+- Stable JSON CLI operations are the initial integration boundary for skills; later MCP and HTTP adapters should reuse the same handlers.
 - Prefer adding new behavior behind the existing provider/service boundary instead of pushing Win32 concerns into controllers.
 - Avoid exposing raw LMU structs directly as a long-term public API unless that choice is intentional and documented.
 - If you touch interop models, update tests first or alongside the change.
 
 ## Next Likely Steps
 
-- Add a stable telemetry snapshot API contract
-- Add persistence/history storage
-- Add richer validation for struct layouts and copy semantics
-- Add derived metrics and session analytics
+- Add explicit tracking state, lap buffering, lap-boundary detection, summaries, and traces over the working LMU feed.
+- Add first-class local sessions and setup associations.
+- Add stable JSON CLI queries for sessions, laps, comparisons, telemetry, and setups.
+- Build the interactive terminal workspace and initial skills on those deterministic operations.
