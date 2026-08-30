@@ -33,7 +33,7 @@ public sealed class CliCommandRunner(
             "tracking" when args.ElementAtOrDefault(1) == "status" => tracking.GetStatus(),
             "setup" when args.ElementAtOrDefault(1) == "list" => await ListSetupsAsync(args, cancellationToken),
             "setup" when args.ElementAtOrDefault(1) == "files" && args.ElementAtOrDefault(2) == "list" => await ListSetupFilesAsync(args, cancellationToken),
-            "setup" when args.ElementAtOrDefault(1) == "import" && Guid.TryParse(GetOption(args, "--session"), out var importSessionId) => await ImportBaselineAsync(args, importSessionId, cancellationToken),
+            "setup" when args.ElementAtOrDefault(1) == "import" => await ImportBaselineAsync(args, cancellationToken),
             "setup" when args.ElementAtOrDefault(1) == "show" => await ShowSetupAsync(args, cancellationToken),
             "setup" when args.ElementAtOrDefault(1) == "compare" => await CompareSetupsAsync(args, cancellationToken),
             "setup" when args.ElementAtOrDefault(1) == "propose" && Guid.TryParse(GetOption(args, "--session"), out var proposalSessionId) => await CreateProposalAsync(args, proposalSessionId, cancellationToken),
@@ -59,11 +59,13 @@ public sealed class CliCommandRunner(
         return result.Error is null ? result.Proposal! : new { error = result.Error };
     }
 
-    private async Task<object> ImportBaselineAsync(string[] args, Guid sessionId, CancellationToken cancellationToken)
+    private async Task<object> ImportBaselineAsync(string[] args, CancellationToken cancellationToken)
     {
+        var sessionId = GetGuidOption(args, "--session");
+        if (sessionId is null) return new { error = "--session must be a valid session ID." };
         var filePath = GetOption(args, "--file");
         if (string.IsNullOrWhiteSpace(filePath)) return new { error = "--file is required." };
-        var result = await setups.ImportBaselineAsync(new ImportSetupBaselineCommand(sessionId, filePath), cancellationToken);
+        var result = await setups.ImportBaselineAsync(new ImportSetupBaselineCommand(sessionId.Value, filePath), cancellationToken);
         return result.Error is null ? result.Baseline! : new { error = result.Error };
     }
 

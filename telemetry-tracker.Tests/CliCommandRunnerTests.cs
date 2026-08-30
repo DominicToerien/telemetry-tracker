@@ -91,6 +91,14 @@ public sealed class CliCommandRunnerTests : IDisposable
         Assert.Contains("valid session ID", result.RootElement.GetProperty("error").GetString(), StringComparison.Ordinal);
     }
 
+    [Fact]
+    public async Task SetupImport_RejectsAnInvalidSessionIdentifier()
+    {
+        var result = await RunAsync(CreateRunner(), "setup", "import", "--session", "not-a-guid", "--file", "baseline.svm", "--json");
+
+        Assert.Contains("valid session ID", result.RootElement.GetProperty("error").GetString(), StringComparison.Ordinal);
+    }
+
     public void Dispose()
     {
         SqliteConnection.ClearAllPools();
