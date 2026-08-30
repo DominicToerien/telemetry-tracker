@@ -32,8 +32,10 @@ public sealed class CliCommandRunner(
             "telemetry" when args.ElementAtOrDefault(1) == "show" => await GetLapTelemetryAsync(args, cancellationToken),
             "tracking" when args.ElementAtOrDefault(1) == "status" => tracking.GetStatus(),
             "setup" when args.ElementAtOrDefault(1) == "list" && Guid.TryParse(GetOption(args, "--session"), out var sessionId) => await setups.ListAsync(sessionId, cancellationToken),
+            "setup" when args.ElementAtOrDefault(1) == "files" && args.ElementAtOrDefault(2) == "list" => await ListSetupFilesAsync(args, cancellationToken),
+            "setup" when args.ElementAtOrDefault(1) == "import" && Guid.TryParse(GetOption(args, "--session"), out var importSessionId) => await ImportBaselineAsync(args, importSessionId, cancellationToken),
             "setup" when args.ElementAtOrDefault(1) == "propose" && Guid.TryParse(GetOption(args, "--session"), out var proposalSessionId) => await CreateProposalAsync(args, proposalSessionId, cancellationToken),
-            _ => new { error = "Unknown command.", usage = "sessions list | sessions show <id> | laps list --session <id> | laps show <id> | telemetry show --lap <id> | laps compare <id> <id> | telemetry status | tracking status" }
+            _ => new { error = "Unknown command.", usage = "sessions list | sessions show <id> | laps list --session <id> | laps show <id> | telemetry show --lap <id> | laps compare <id> <id> | telemetry status | tracking status | setup files list --root <path> | setup import --session <id> --file <path>" }
         };
 
         await output.WriteLineAsync(JsonSerializer.Serialize(result, JsonOptions));
@@ -53,6 +55,28 @@ public sealed class CliCommandRunner(
         if (string.IsNullOrWhiteSpace(name) || string.IsNullOrWhiteSpace(feedback)) return new { error = "--name and --feedback are required." };
         var result = await setups.CreateProposalAsync(new CreateSetupProposalCommand(sessionId, name, feedback), cancellationToken);
         return result.Error is null ? result.Proposal! : new { error = result.Error };
+    }
+
+    private async Task<object> ImportBaselineAsync(string[] args, Guid sessionId, CancellationToken cancellationToken)
+    {
+        var filePath = GetOption(args, "--file");
+        if (string.IsNullOrWhiteSpace(filePath)) return new { error = "--file is required." };
+        var result = await setups.ImportBaselineAsync(new ImportSetupBaselineCommand(sessionId, filePath), cancellationToken);
+        return result.Error is null ? result.Baseline! : new { error = result.Error };
+    }
+
+    private static async Task<object> ListSetupFilesAsync(string[] args, CancellationToken cancellationToken)
+    {
+        var root = GetOption(args, "--root");
+        if (string.IsNullOrWhiteSpace(root)) return new { error = "--root is required." };
+        try
+        {
+            return await SvmSetupDiscovery.DiscoverAsync(root, cancellationToken);
+        }
+        catch (Exception exception) when (exception is ArgumentException or DirectoryNotFoundException or IOException or UnauthorizedAccessException)
+        {
+            return new { error = exception.Message };
+        }
     }
 
     private static string? GetOption(string[] args, string option) => args.SkipWhile(arg => arg != option).Skip(1).FirstOrDefault();

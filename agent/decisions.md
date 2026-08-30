@@ -497,3 +497,20 @@ Why:
 Consequences:
 - The current `setup propose` command returns a clear refusal and does not persist an empty proposal.
 - The next real setup slice requires representative car-specific setup files and parser/writer validation before output is enabled.
+
+## 2026-08-30 - LMU Baselines Are Lossless, Car-Identified Source Artifacts
+
+Status:
+- accepted
+
+Decision:
+- Treat an `.svm` setup as a lossless source artifact: store its original text and SHA-256 fingerprint, and use `VehicleClassSetting` rather than its filename to identify the car.
+- Parse sections, setting names, values, and comments only for inspection in this phase; do not rewrite values.
+
+Why:
+- Real local examples show the same model can carry different series/year identifiers and filenames are user-defined.
+- Inline comments and unknown lines carry car-specific meaning that must survive until safe setting changes are validated.
+
+Consequences:
+- Baseline import is immutable and versioned per session and exact car identifier.
+- Generated LMU setup output remains disabled; the following slice must validate concrete setting changes and LMU round trips for each supported car.

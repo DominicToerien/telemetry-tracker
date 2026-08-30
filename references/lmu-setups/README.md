@@ -26,3 +26,9 @@ Do not use it to:
 - treat comments or the `[BASIC]` values as an authoritative tuning model.
 
 Before `/create-setup` writes LMU files, add representative fixtures from supported cars, document their provenance, and validate generated output against LMU. Setup proposals must remain versioned and require explicit user confirmation before export or application.
+
+## Local baseline discovery
+
+The native client can inspect a user-selected LMU Settings root using `setup files list --root <path> --json`, then import a chosen file with `setup import --session <id> --file <path> --json`.
+
+The `VehicleClassSetting` inside the file is the car identity for baseline storage. File names and track folders are useful provenance, but user-defined names and series/year variants must not be used as a universal vehicle schema. The importer stores the original `.svm` text and a fingerprint without rewriting it.
