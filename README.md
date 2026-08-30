@@ -8,16 +8,13 @@ The primary MVP direction is a local-first Codex/Claude-style CLI/TUI:
 - compare laps and inspect recorded setup context
 - use skills as the initial AI layer for coaching and guided setup proposals
 
-Later hosted phases retain the planned runtime modes from one codebase; they are not the immediate MVP:
-- `Collector` mode (user machine): reads LMU shared memory locally and sends telemetry/lap payloads to a hosted API.
-- `Server` mode (hosted): accepts telemetry ingestion, persists lap summaries/traces, and serves query/analysis endpoints.
+The current project is only the standalone native client. A later hosted phase will add a separate ASP.NET Core server project that this client can call over HTTPS.
 
 The current implementation is intentionally narrow:
 - It reads LMU shared memory on Windows.
 - It keeps the latest copied scoring/telemetry snapshot in memory.
-- It exposes connection/debug status endpoints for bring-up and validation.
 - It renders a live single-line console telemetry status display for local verification while driving.
-- It exposes that telemetry status through a dedicated `Features/TelemetryStatus` vertical slice.
+- It keeps telemetry status/debug queries as application handlers for future CLI commands.
 - It does not yet include session/lap capture, the interactive TUI, skill-facing CLI operations, hosted ingestion, analytics, or a frontend.
 
 ## Project Status
@@ -35,9 +32,9 @@ The persistent AI working context lives under [agent/](./agent/README.md), produ
 - Le Mans Ultimate running if you want live connected telemetry
 
 Notes:
-- The API can still run on non-Windows platforms, but LMU shared memory will be reported as unsupported/disconnected.
+- The console app can start on non-Windows platforms, but LMU shared memory will be reported as unsupported/disconnected.
 - The human-facing MVP is installed and run natively on the same Windows machine as LMU; it is not a Docker workload.
-- The current Linux Docker target is retained for CI/testing and the later hosted server role, not for live LMU acquisition or local setup-file management.
+- This project has no Docker or ASP.NET server runtime. Those concerns belong to a future server project.
 - The complete deployment and transport boundary is documented in [agent/specs/architecture.md](./agent/specs/architecture.md).
 
 ## Quick Start
@@ -48,51 +45,15 @@ Notes:
 dotnet build telemetry-tracker.csproj
 ```
 
-2. Run the API:
+2. Run the native console app:
 
 ```powershell
 dotnet run --project telemetry-tracker.csproj
 ```
 
-3. Open Swagger in development:
-
-- `https://localhost:<port>/swagger`
-
-4. Check telemetry status:
-
-- `GET /telemetry/status`
-- `GET /telemetry/debug`
-
-Example:
-
-```powershell
-Invoke-RestMethod http://127.0.0.1:5099/telemetry/status
-```
-
-If LMU is not running, the service should still start and return a disconnected status instead of crashing.
+The app continuously shows live connection/telemetry state. Press `Ctrl+C` to exit. If LMU is not running, the process remains stable and reports a disconnected status.
 
 ## Configuration
-
-### Supabase connection string
-
-For local server-side persistence configuration, use a root `.env` file with this exact variable name:
-
-```dotenv
-ConnectionStrings__Supabase=Host=db.<project-ref>.supabase.co;Port=5432;Database=postgres;Username=postgres;Password=<password>;SSL Mode=Require;Trust Server Certificate=true
-```
-
-Notes:
-- `ConnectionStrings__Supabase` is the canonical variable name for this project.
-- The double underscore maps to ASP.NET configuration key `ConnectionStrings:Supabase`.
-- This is what `configuration.GetConnectionString("Supabase")` reads.
-- Do not use `SUPABASE_CONNECTION_STRING` for this project anymore.
-- Keep this value in `.env` or hosted environment configuration, never committed into `appsettings.json`.
-- The local collector role should remain runnable without this value; hosted server environments are where persistence secrets belong.
-
-If `ConnectionStrings__Supabase` is missing, the app still starts and logs that DbContext registration was skipped.
-
-If the DbContext is registered, the app also attempts to run EF Core migrations automatically on startup with `dbContext.Database.Migrate()`.
-If migration fails, the failure is logged and the application continues starting so LMU telemetry verification is not blocked by persistence issues.
 
 LMU reader settings live in `appsettings.json` under `LmuTelemetry`:
 
@@ -128,30 +89,7 @@ On startup, the LMU background service now validates:
 - `UnsubscribedBuffersMask` is normalized to `0`
 - `EnableDirectMemoryAccess` is normalized to `1`
 
-These startup checks can also normalize the local plugin JSON when `AutoEnablePluginOnStartup` is enabled. Failures are logged as warnings and do not crash the API.
-
-## API Endpoints
-
-### `GET /telemetry/status`
-
-Returns the current LMU provider state, including:
-- whether the provider is enabled
-- whether the current platform supports LMU shared memory
-- whether the service is currently connected
-- timestamps for the last successful scoring/telemetry reads
-- the last known shared-memory event
-- the current disconnected/warning message, if any
-
-### `GET /telemetry/debug`
-
-Returns a lightweight debug view of the latest copied snapshot metadata, such as:
-- current track name
-- player name
-- session id
-- active vehicle count
-- player vehicle availability
-
-This endpoint is for bring-up/debugging and should not be treated as a stable public telemetry contract yet.
+These startup checks can also normalize the local plugin JSON when `AutoEnablePluginOnStartup` is enabled. Failures are logged as warnings and do not crash the app.
 
 ## Later Hosted Deployment Direction
 
@@ -168,20 +106,18 @@ Security boundary:
 - collector should not require direct database credentials
 - server-only secrets stay in hosted environment configuration
 
-Configuration expectation:
-- app should run in a degraded mode when persistence configuration is missing
-- telemetry status and local verification should still function without DB access
+The native client will use `HttpClient` when synchronization is implemented. It does not host HTTP endpoints or contain hosted database credentials/migrations.
 
 ## Architecture Overview
 
 Main flow:
 
-1. `LmuTelemetryBackgroundService` starts with the API.
+1. The .NET Generic Host starts `LmuTelemetryBackgroundService`.
 2. On Windows, it attempts to open the LMU event, file mapping, and shared lock objects.
 3. When LMU signals an update, the service copies the shared-memory layout into managed structs.
 4. `LmuTelemetryProvider` stores the latest thread-safe in-memory status/snapshot.
 5. The background service renders a live single-row console status line for local verification.
-6. The `Features/TelemetryStatus` slice exposes thin query endpoints over that state.
+6. The `Features/TelemetryStatus` slice provides reusable queries for future CLI/TUI adapters.
 
 Important files:
 - [agent/README.md](/abs/path/c:/Users/toeri/source/repos/telemetry-tracker/agent/README.md)
@@ -191,7 +127,6 @@ Important files:
 - [agent/specs/plan.md](/abs/path/c:/Users/toeri/source/repos/telemetry-tracker/agent/specs/plan.md)
 - [agent/skills/README.md](/abs/path/c:/Users/toeri/source/repos/telemetry-tracker/agent/skills/README.md)
 - [agent/plan.md](/abs/path/c:/Users/toeri/source/repos/telemetry-tracker/agent/plan.md)
-- [Features/TelemetryStatus/Endpoint.cs](/abs/path/c:/Users/toeri/source/repos/telemetry-tracker/Features/TelemetryStatus/Endpoint.cs)
 - [Features/TelemetryStatus/GetTelemetryStatusHandler.cs](/abs/path/c:/Users/toeri/source/repos/telemetry-tracker/Features/TelemetryStatus/GetTelemetryStatusHandler.cs)
 - [Features/TelemetryStatus/GetTelemetryDebugHandler.cs](/abs/path/c:/Users/toeri/source/repos/telemetry-tracker/Features/TelemetryStatus/GetTelemetryDebugHandler.cs)
 - [Program.cs](/abs/path/c:/Users/toeri/source/repos/telemetry-tracker/Program.cs)
@@ -229,13 +164,12 @@ The `.svm` file is a non-authoritative ModDev pace-car example. Use it to unders
 ## Failure Handling Expectations
 
 If LMU shared memory is unavailable:
-- the API must still start
+- the console app must still start
 - the process must not crash
-- the service must log a clear warning
-- `/telemetry/status` must report disconnected state
+- the app must display or log a clear disconnected state
 
 If the app is running on a non-Windows OS:
-- the API must still start
+- the console app must still start
 - LMU telemetry must report unsupported/disconnected
 
 ## Tests
@@ -263,11 +197,6 @@ Current tests cover:
 - disconnected default provider behavior
 - scoring-only update handling
 - telemetry-only update handling
-- status endpoint response shape
-
-## Local .env example
-
-See [.env.example](./.env.example) for the expected local configuration shape.
 
 ## Parallel Agent Work
 
@@ -279,7 +208,7 @@ The repo now includes helper scripts for that workflow:
 - `scripts/Invoke-AgentWorkspace.ps1`
 - `scripts/Remove-AgentWorkspace.ps1`
 
-These scripts create a separate worktree per task, assign workspace-specific localhost ports, and optionally copy your local `.env` into the new worktree.
+These scripts create a separate worktree per task and optionally copy a local `.env` if one is introduced for a future task.
 
 Start here:
 
@@ -336,7 +265,7 @@ Branching rule for implementation chats:
 - Keep `agent/` and `agent/specs/` aligned when the project direction changes.
 - New user-facing behaviour should prefer `Features/{FeatureName}` slices with explicit handlers and thin CLI/TUI adapters.
 - Stable JSON CLI operations are the initial integration boundary for skills; later MCP and HTTP adapters should reuse the same handlers.
-- Prefer adding new behavior behind the existing provider/service boundary instead of pushing Win32 concerns into controllers.
+- Prefer adding new behavior behind the existing provider/service boundary instead of pushing Win32 concerns into CLI/TUI adapters.
 - Avoid exposing raw LMU structs directly as a long-term public API unless that choice is intentional and documented.
 - If you touch interop models, update tests first or alongside the change.
 

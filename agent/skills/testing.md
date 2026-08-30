@@ -11,7 +11,7 @@ When implementing meaningful logic, add unit tests for:
 Do not add tests for:
 
 - Framework wiring
-- Thin endpoint plumbing
+- Thin interface-adapter plumbing
 - Simple data mapping with no meaningful logic
 - Behaviour already fully covered indirectly unless the new test adds clarity
 

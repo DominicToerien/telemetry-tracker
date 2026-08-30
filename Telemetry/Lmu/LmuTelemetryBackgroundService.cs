@@ -1,3 +1,5 @@
+using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using System.Text.Json;
 using System.Text.Json.Nodes;
@@ -28,7 +30,7 @@ public sealed class LmuTelemetryBackgroundService : BackgroundService
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
-        // Yield immediately so host startup can complete and HTTP listeners can come online.
+        // Yield immediately so host startup can complete before telemetry acquisition begins.
         await Task.Yield();
 
         _provider.SetEnabled(_options.Enabled);

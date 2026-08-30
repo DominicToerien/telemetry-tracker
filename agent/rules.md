@@ -10,6 +10,7 @@
 - Do not persist raw telemetry continuously.
 - Follow Vertical Slice Architecture plus CQRS.
 - Keep Supabase/Postgres credentials server-side only; do not require DB secrets in local collector runtime.
+- Do not add ASP.NET hosting, HTTP endpoints, hosted persistence migrations, or Docker tooling to the native client; introduce them in a separate server project when the hosted phase begins.
 - Update `agent/decisions.md` when a meaningful architectural or scope decision is made.
 - Update `agent/progress.md` when project status meaningfully changes.
 - Use a dedicated git worktree for every chat that makes repository changes.
@@ -74,7 +75,7 @@ Examples:
 
 ## Additional Working Rules
 
-- Keep CLI/TUI commands, skill adapters, and later MCP/HTTP endpoints thin.
+- Keep CLI/TUI commands and skill adapters thin; keep later MCP/HTTP adapters in their owning projects.
 - Treat stable machine-readable CLI operations as the first AI integration boundary.
 - Keep skills supported when native AI, MCP, hosted APIs, synchronization, and a frontend are added later.
 - Prefer feature-local handlers and data access over large shared service layers.

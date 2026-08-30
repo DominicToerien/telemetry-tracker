@@ -394,7 +394,7 @@ Status:
 Decision:
 - Install and run the human-facing LMU collector, local telemetry host, persistence, setup management, CLI/TUI, and skills natively on the Windows machine running LMU.
 - Do not containerize the live LMU-facing MVP.
-- Reserve Docker for CI/testing and the optional later hosted API/platform.
+- Add Docker only beside a concrete optional later hosted API/platform; keep the current native client free of container tooling.
 - Use authenticated HTTPS for native-to-hosted synchronization, HTTP/WebSocket APIs for the web frontend, and MCP for agent-facing tools.
 
 Why:
@@ -411,3 +411,36 @@ Tradeoffs:
 - The project needs a native Windows packaging and update path.
 - The later server role should gain an explicit entry point or project before its Docker deployment matures.
 - Shared application contracts remain useful, but native and hosted secrets, adapters, and runtime dependencies must stay separated.
+
+## 2026-08-30 - Native Client Is A Standalone Generic Host Application
+
+Status:
+- accepted
+
+Decision:
+- Convert the current executable from an ASP.NET Core Web application to a standalone .NET Generic Host console application.
+- Remove HTTP endpoints, Swagger, authorization middleware, Docker tooling, Supabase/Npgsql/EF migrations, and server-oriented `.env` configuration from the native client.
+- Preserve application query handlers and LMU hosted-service behavior for future CLI/TUI adapters.
+- Introduce ASP.NET Core, hosted persistence, and a server-specific Dockerfile only in a separate server project when the hosted phase is active.
+
+Why:
+- The native client reads LMU shared memory and local setup files and must present an unambiguous offline human-facing CLI/TUI product.
+- Calling a future hosted API requires `HttpClient`, not an embedded HTTP server.
+- Dormant server infrastructure in the client obscures security, deployment, and ownership boundaries.
+
+Alternatives considered:
+- Keep one ASP.NET executable with collector/server runtime modes.
+- Retain unused Docker and Supabase scaffolding until the hosted phase.
+- Keep HTTP status endpoints as local bring-up interfaces.
+
+Tradeoffs:
+- The existing HTTP status endpoint and its integration test are removed; equivalent CLI commands will be implemented in the CLI phase.
+- Hosted server scaffolding will need to be created later in its own project.
+- The current live console remains a bring-up experience rather than the final interactive TUI.
+
+Supersedes:
+- `Single Process ASP.NET Core API`
+- `Single Codebase With Collector And Hosted Server Roles`
+- `Supabase DbContext Uses .env Configuration With Conditional Registration`
+- `Standardize Supabase .env Loading On ASP.NET ConnectionStrings Convention`
+- `EF Core Migrations Run Automatically On Startup When Persistence Is Configured`

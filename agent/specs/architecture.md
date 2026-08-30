@@ -148,14 +148,16 @@ Do not stream every raw LMU packet to the hosted platform by default. Local tele
 
 ## Docker Policy
 
-The repository's Docker support is retained for:
+The standalone native application has no Dockerfile or container tooling. Do not add Docker artifacts to the local application for development convenience or future speculation.
 
-- the later hosted API/platform;
-- CI build and test environments;
-- mock or recorded telemetry replay that does not require live LMU shared memory;
-- development of server-only capabilities.
+When the hosted phase becomes active:
 
-The current Dockerfile comes from the existing ASP.NET foundation and uses a Linux image. Do not present it as the installation or runtime path for the native Windows MVP. As the hosted phase becomes concrete, give the server role an explicit entry point or project so the Docker image cannot accidentally imply it contains the local collector product.
+- create an explicit server entry point or project;
+- add a server-specific Dockerfile beside that deployable;
+- keep the native application outside the server image;
+- use mock or recorded data for containerized server tests that need telemetry-shaped input.
+
+Docker belongs to a concrete hosted deployable, not to the current solution merely because a hosted platform is planned.
 
 ## Shared Application Core
 

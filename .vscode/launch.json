@@ -16,13 +16,7 @@
             "console": "integratedTerminal",
             "internalConsoleOptions": "neverOpen",
             "env": {
-                "ASPNETCORE_ENVIRONMENT": "Development",
-                "ASPNETCORE_URLS": "https://localhost:7022;http://localhost:5227"
-            },
-            "serverReadyAction": {
-                "action": "openExternally",
-                "pattern": "\\[Startup\\] Listening on:\\s+(https?://\\S+)",
-                "uriFormat": "%s/swagger"
+                "DOTNET_ENVIRONMENT": "Development"
             }
         },
         {
@@ -37,13 +31,7 @@
             "console": "externalTerminal",
             "internalConsoleOptions": "neverOpen",
             "env": {
-                "ASPNETCORE_ENVIRONMENT": "Development",
-                "ASPNETCORE_URLS": "https://localhost:7022;http://localhost:5227"
-            },
-            "serverReadyAction": {
-                "action": "openExternally",
-                "pattern": "\\[Startup\\] Listening on:\\s+(https?://\\S+)",
-                "uriFormat": "%s/swagger"
+                "DOTNET_ENVIRONMENT": "Development"
             }
         }
     ]

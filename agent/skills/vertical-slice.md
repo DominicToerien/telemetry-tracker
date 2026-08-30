@@ -6,7 +6,8 @@ When implementing a feature:
    - `/Features/{FeatureName}/`
 
 2. Keep feature code together and prefer these files when they add value:
-   - `Endpoint.cs`
+   - `Command.cs` or `Query.cs`
+   - `CliAdapter.cs` or another interface-specific adapter
    - `Request.cs`
    - `Response.cs`
    - `Handler.cs`
@@ -18,7 +19,7 @@ When implementing a feature:
    - Queries return data
    - Do not mix read and write responsibilities in one handler
 
-4. Keep endpoints thin:
+4. Keep interface adapters thin:
    - Accept the request
    - Delegate to the feature handler
    - Return the response
@@ -31,5 +32,7 @@ Do not:
 - Mix read and write responsibilities
 - Organize new work by technical layer instead of feature
 - Create abstractions before the current slice needs them
+
+For the native MVP, do not add ASP.NET endpoints. A future server project may add thin HTTP endpoints over shared application handlers when the hosted phase is active.
 
 Use this skill whenever implementing or refactoring application behaviour.

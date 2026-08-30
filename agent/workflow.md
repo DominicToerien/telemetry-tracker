@@ -88,7 +88,6 @@ After each step:
 ### 6. Validate with Real Use Cases
 
 - use actual CLI/TUI commands and stable JSON output
-- exercise the current HTTP status/debug endpoints only as implementation bring-up surfaces
 - run realistic skill workflows such as lap comparison and guided setup creation
 - verify outputs match expectations
 

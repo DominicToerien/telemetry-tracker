@@ -14,6 +14,8 @@ Evolution model for this plan:
 
 The canonical deployment, transport, MCP, and Docker boundaries are defined in [specs/architecture.md](./specs/architecture.md). In particular, the live LMU-facing MVP runs natively on Windows and is not containerized.
 
+The current project is the standalone native client. It must not host HTTP endpoints, run hosted database migrations, or carry Docker tooling. A future ASP.NET Core server will be a separate entry point/project and the native client will call it with `HttpClient` when synchronization is implemented.
+
 ## Product Goal
 
 Deliver a running terminal product where:
@@ -29,7 +31,7 @@ Deliver a running terminal product where:
 
 ## Technology and Constraints
 
-- Platform: .NET 8 local CLI/TUI with reusable application handlers
+- Platform: native Windows .NET 8 executable using the Generic Host, with a local CLI/TUI and reusable application handlers
 - Language: C#
 - Architecture: Vertical Slice Architecture + CQRS
 - Runtime: one local telemetry owner with one or more terminal clients
@@ -529,7 +531,7 @@ Add unit tests where they provide clear value. Prioritise:
 Also keep focused tests around:
 
 - disconnected LMU startup
-- telemetry status endpoint returns disconnected state when LMU is unavailable
+- telemetry status query returns disconnected state when LMU is unavailable
 - mock source behaviour for deterministic lap completion
 
 ## Logging Expectations
@@ -603,10 +605,10 @@ Avoid:
 
 ### Later Architectural Evolution
 
-- add asynchronous read-model projection when write endpoints would otherwise block on expensive query-shape updates
+- add asynchronous read-model projection when hosted write commands would otherwise block on expensive query-shape updates
 - start with an in-process queue plus background worker before considering heavier infrastructure
 - add Redis only after read models exist and query hot paths justify caching
-- invalidate or refresh Redis from the read side, not from ad hoc endpoint logic
+- invalidate or refresh Redis from the hosted read side, not from ad hoc adapter logic
 
 ## Explicit Non-Goals
 
@@ -625,9 +627,9 @@ Do not add in this scope unless explicitly requested:
 ## Current Baseline
 
 Already in place:
-- ASP.NET Core API scaffold
+- standalone .NET Generic Host console scaffold
 - basic LMU shared-memory reader foundation
-- telemetry status endpoints
+- telemetry status query handlers and live console output
 - console-friendly logging configuration
 - initial tests around layout and disconnected behaviour
 

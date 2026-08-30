@@ -23,6 +23,7 @@ The focus is on delivering a clean, working vertical slice of functionality with
 - CQRS
 - local CLI/TUI as the primary MVP surface
 - a local telemetry host that can serve multiple terminal clients
+- native Windows executable using the .NET Generic Host; no embedded web server
 - `HostedService` / `BackgroundService`
 - local-first persistence
 - console logging
@@ -76,6 +77,8 @@ The later hosted plan remains valid:
 
 The deployment boundary is defined in [architecture.md](./architecture.md): the LMU-facing MVP is installed and run natively on Windows, while the optional later hosted platform is a separate Docker-suitable deployment. The native app synchronizes completed artifacts over authenticated HTTPS; MCP is reserved for agent tooling and is not the frontend or synchronization transport.
 
+The native client does not host ASP.NET endpoints and does not contain hosted database credentials or migrations. Calling the future API requires only an HTTP client. ASP.NET Core and Docker should be introduced in a separate server project when hosted ingestion becomes an active phase.
+
 ## Operational Model
 
 The MVP application:
@@ -92,7 +95,7 @@ The MVP application:
 - organise code by feature, not by technical layer
 - commands mutate state
 - queries return data
-- keep terminal commands, skill adapters, and later endpoints thin
+- keep terminal commands and skill adapters thin; keep later server adapters thin in their own project
 - avoid large generic service layers
 - prefer the smallest complete end-to-end solution
 

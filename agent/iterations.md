@@ -56,7 +56,7 @@ The biggest improvement came from:
 
 ## Current Repository Reality
 
-The repository currently has LMU shared-memory ingestion foundations and telemetry status endpoints in place. The broader lap-tracking, Supabase, mock source, and AI workflow described in the current plan are the next evolution, not completed functionality.
+The repository currently has a standalone Generic Host console app, LMU shared-memory ingestion foundations, telemetry status queries, and live console output. Lap tracking, local persistence, the TUI, and skills are not completed functionality. Hosted APIs and Supabase belong to a separate later server project.
 
 ## Current Approach - Skills-First Terminal Workspace
 
@@ -67,6 +67,7 @@ The repository currently has LMU shared-memory ingestion foundations and telemet
 - Codex/Claude skills as the initial coaching and setup layer
 - guided, versioned setup proposals with explicit confirmation before export
 - native BYOK chat, MCP, hosted API/sync, Supabase, and frontend retained as later phases
+- no ASP.NET server, Docker, or hosted database infrastructure inside the native client
 
 ## Why This Evolution
 

@@ -48,17 +48,11 @@ try {
     Import-EnvFile -Path (Join-Path $repoRoot ".env.agent")
 
     $workspaceName = [Environment]::GetEnvironmentVariable("TELEMETRY_TRACKER_WORKSPACE_NAME", "Process")
-    $workspaceUrls = [Environment]::GetEnvironmentVariable("ASPNETCORE_URLS", "Process")
-
     if ([string]::IsNullOrWhiteSpace($workspaceName)) {
         $workspaceName = Split-Path $repoRoot -Leaf
     }
 
     Write-Host ("[Agent Workspace] name={0}" -f $workspaceName)
-
-    if (-not [string]::IsNullOrWhiteSpace($workspaceUrls)) {
-        Write-Host ("[Agent Workspace] urls={0}" -f $workspaceUrls)
-    }
 
     switch ($Command) {
         "run" {

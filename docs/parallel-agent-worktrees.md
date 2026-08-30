@@ -4,10 +4,9 @@ Use git worktrees so each chat or agent gets:
 
 - its own branch
 - its own checkout directory
-- its own local port allocation
 - its own optional copied `.env`
 
-This avoids branch switching conflicts and makes it safe to run multiple local API instances at the same time.
+This avoids branch switching conflicts and keeps each agent's build and test state isolated.
 
 ## Branching Rule
 
@@ -27,7 +26,7 @@ powershell -ExecutionPolicy Bypass -File .\scripts\New-AgentWorkspace.ps1 `
   -BaseBranch main
 ```
 
-Run the app inside a worktree with its generated workspace ports:
+Run the app inside a worktree:
 
 ```powershell
 powershell -ExecutionPolicy Bypass -File .\scripts\Invoke-AgentWorkspace.ps1 -Command run
@@ -52,9 +51,9 @@ powershell -ExecutionPolicy Bypass -File .\scripts\Remove-AgentWorkspace.ps1 -Na
 Each worktree gets:
 
 - `.env.agent`
-  - generated workspace-only settings such as `ASPNETCORE_URLS`
+  - generated workspace identity and `DOTNET_ENVIRONMENT`
 - `.agent-workspace.json`
-  - metadata about branch, ports, and creation time
+  - metadata about the branch and creation time
 - optional copied `.env`
   - copied from the source checkout if one exists so local secrets do not need to be re-entered
 
@@ -79,5 +78,5 @@ This keeps each checkout isolated while still close to the main repository.
 ## Notes
 
 - Branch names should follow the project naming rules in `agent/rules.md`.
-- `Invoke-AgentWorkspace.ps1` runs `dotnet run --no-launch-profile` so the generated workspace ports win over shared launch-profile defaults.
-- If `.env` is missing, the app still runs; persistence stays disabled unless configured.
+- `Invoke-AgentWorkspace.ps1` runs `dotnet run --no-launch-profile` so a worktree uses its generated environment consistently.
+- Only one running process should own live LMU shared-memory acquisition. Parallel worktrees are primarily for isolated editing, building, and testing.
