@@ -40,7 +40,7 @@ public sealed class SvmSetupBaselineTests : IDisposable
     }
 
     [Fact]
-    public async Task ImportBaselineAsync_StoresImmutableSourceAndVersionsSameCar()
+    public async Task ImportBaselineAsync_IsIdempotentAndVersionsChangedSourceForSameCar()
     {
         var setupPath = await WriteSetupAsync("Daytonarc", "corvette.svm");
         var options = new DbContextOptionsBuilder<TelemetryTrackerDbContext>().UseSqlite($"Data Source={_databasePath}").Options;
@@ -54,16 +54,26 @@ public sealed class SvmSetupBaselineTests : IDisposable
 
         var store = new SetupRevisionStore(new TestDbContextFactory(options));
         var first = await store.ImportBaselineAsync(new ImportSetupBaselineCommand(sessionId, setupPath), CancellationToken.None);
+        var duplicate = await store.ImportBaselineAsync(new ImportSetupBaselineCommand(sessionId, setupPath), CancellationToken.None);
+        await File.WriteAllTextAsync(setupPath, "VehicleClassSetting=\"Corvette_Z06_LMGT3R ELMS2025 GT3\"\n[REARWING]\nRWSetting=2//3.0 deg\n");
         var second = await store.ImportBaselineAsync(new ImportSetupBaselineCommand(sessionId, setupPath), CancellationToken.None);
 
         Assert.Null(first.Error);
         Assert.Null(second.Error);
         Assert.NotNull(first.Baseline);
+        Assert.NotNull(duplicate.Baseline);
         Assert.NotNull(second.Baseline);
+        Assert.Equal(first.Baseline.Id, duplicate.Baseline.Id);
         Assert.Equal(first.Baseline.Id, second.Baseline.ParentRevisionId);
-        var stored = JsonSerializer.Deserialize<StoredSvmSetup>(first.Baseline.SetupValuesJson);
+        var stored = JsonSerializer.Deserialize<StoredSvmSetup>(second.Baseline.SetupValuesJson);
         Assert.NotNull(stored);
         Assert.Equal(await File.ReadAllTextAsync(setupPath), stored.RawText);
+
+        var comparison = await store.CompareAsync(first.Baseline.Id, second.Baseline.Id, CancellationToken.None);
+        var difference = Assert.Single(comparison!.Differences);
+        Assert.Equal("RWSetting", difference.Name);
+        Assert.Equal("1", difference.FirstValue);
+        Assert.Equal("2", difference.SecondValue);
     }
 
     public void Dispose()

@@ -30,7 +30,7 @@ public sealed class TerminalWorkspace(
 
             if (args[0].Equals("help", StringComparison.OrdinalIgnoreCase))
             {
-                Console.WriteLine("/sessions list | /open-session <id> | /laps list [--session <id>] | /open-lap <id> | /back | /compare <lap-a> <lap-b> | /tracking start|stop|status | /telemetry status | /setup files list --root <path> | /setup import --session <id> --file <path> | /setup list --session <id> | /exit");
+                Console.WriteLine("/sessions list | /open-session <id> | /laps list [--session <id>] | /open-lap <id> | /back | /compare <lap-a> <lap-b> | /tracking start|stop|status | /telemetry status | /setup files list --root <path> | /setup import --session <id> --file <path> | /setup list --session <id> | /setup show <id> | /setup compare <id> <id> | /exit");
                 continue;
             }
 

@@ -31,11 +31,13 @@ public sealed class CliCommandRunner(
             "telemetry" when args.ElementAtOrDefault(1) == "status" => telemetry.GetStatus(),
             "telemetry" when args.ElementAtOrDefault(1) == "show" => await GetLapTelemetryAsync(args, cancellationToken),
             "tracking" when args.ElementAtOrDefault(1) == "status" => tracking.GetStatus(),
-            "setup" when args.ElementAtOrDefault(1) == "list" && Guid.TryParse(GetOption(args, "--session"), out var sessionId) => await setups.ListAsync(sessionId, cancellationToken),
+            "setup" when args.ElementAtOrDefault(1) == "list" => await ListSetupsAsync(args, cancellationToken),
             "setup" when args.ElementAtOrDefault(1) == "files" && args.ElementAtOrDefault(2) == "list" => await ListSetupFilesAsync(args, cancellationToken),
             "setup" when args.ElementAtOrDefault(1) == "import" && Guid.TryParse(GetOption(args, "--session"), out var importSessionId) => await ImportBaselineAsync(args, importSessionId, cancellationToken),
+            "setup" when args.ElementAtOrDefault(1) == "show" => await ShowSetupAsync(args, cancellationToken),
+            "setup" when args.ElementAtOrDefault(1) == "compare" => await CompareSetupsAsync(args, cancellationToken),
             "setup" when args.ElementAtOrDefault(1) == "propose" && Guid.TryParse(GetOption(args, "--session"), out var proposalSessionId) => await CreateProposalAsync(args, proposalSessionId, cancellationToken),
-            _ => new { error = "Unknown command.", usage = "sessions list | sessions show <id> | laps list --session <id> | laps show <id> | telemetry show --lap <id> | laps compare <id> <id> | telemetry status | tracking status | setup files list --root <path> | setup import --session <id> --file <path>" }
+            _ => new { error = "Unknown command.", usage = "sessions list | sessions show <id> | laps list --session <id> | laps show <id> | telemetry show --lap <id> | laps compare <id> <id> | telemetry status | tracking status | setup files list --root <path> | setup import --session <id> --file <path> | setup list --session <id> | setup show <id> | setup compare <id> <id>" }
         };
 
         await output.WriteLineAsync(JsonSerializer.Serialize(result, JsonOptions));
@@ -77,6 +79,28 @@ public sealed class CliCommandRunner(
         {
             return new { error = exception.Message };
         }
+    }
+
+    private async Task<object> ListSetupsAsync(string[] args, CancellationToken cancellationToken)
+    {
+        var sessionId = GetGuidOption(args, "--session");
+        if (sessionId is null) return new { error = "--session must be a valid session ID." };
+        return await setups.ListAsync(sessionId.Value, cancellationToken);
+    }
+
+    private async Task<object> ShowSetupAsync(string[] args, CancellationToken cancellationToken)
+    {
+        var revisionId = GetGuidArgument(args, 2);
+        if (revisionId is null) return new { error = "A valid setup revision ID is required." };
+        return (object?)await setups.GetAsync(revisionId.Value, cancellationToken) ?? new { error = $"Setup revision {revisionId} was not found or is not an LMU baseline." };
+    }
+
+    private async Task<object> CompareSetupsAsync(string[] args, CancellationToken cancellationToken)
+    {
+        var firstId = GetGuidArgument(args, 2);
+        var secondId = GetGuidArgument(args, 3);
+        if (firstId is null || secondId is null) return new { error = "Two valid setup revision IDs are required." };
+        return (object?)await setups.CompareAsync(firstId.Value, secondId.Value, cancellationToken) ?? new { error = "Both revisions must be LMU baselines for the same exact car." };
     }
 
     private static string? GetOption(string[] args, string option) => args.SkipWhile(arg => arg != option).Skip(1).FirstOrDefault();

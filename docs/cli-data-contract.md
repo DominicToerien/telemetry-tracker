@@ -30,4 +30,6 @@ Errors are JSON objects with an `error` field and a non-zero exit code. Consumer
 
 `setup import --session <session-id> --file <path> --json` imports an immutable baseline for a real setup file. The source text is stored losslessly with its SHA-256 fingerprint and is versioned against the latest baseline with the same exact `VehicleClassSetting` in that session.
 
+`setup list --session <session-id> --json` returns lightweight revision metadata and fingerprints, never the raw source. `setup show <revision-id> --json` returns the parsed settings for an LMU baseline. `setup compare <first-revision-id> <second-revision-id> --json` returns only changed settings and refuses to compare different exact car identities.
+
 These commands do not generate or modify LMU setup files. A setup must not be generated until its exact car has validated setting definitions and a safe write/LMU verification workflow.

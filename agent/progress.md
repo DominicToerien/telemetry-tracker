@@ -35,7 +35,7 @@ It should be updated whenever implementation meaningfully changes delivery statu
 - local tracking, SQLite session/lap persistence, terminal navigation, and initial skills are implemented on the current skills branch
 - the structured recorded-data contract supports `session -> laps -> lap summary -> telemetry trace` queries without exposing SQLite directly
 - setup generation correctly abstains until validated car-specific baseline setup files and supported setting definitions are available
-- LMU `.svm` setup discovery, lossless parsing, baseline import, fingerprinting, and per-car baseline versioning are implemented for local validation
+- LMU `.svm` setup discovery, lossless parsing, baseline import, fingerprinting, per-car baseline versioning, and safe setup browse/compare queries are implemented for local validation
 
 ## In Progress
 

@@ -9,12 +9,18 @@ public sealed record SetupProposalCreationResult(SetupRevisionRecord? Proposal, 
 public sealed record ImportSetupBaselineCommand(Guid SessionId, string FilePath);
 public sealed record SetupBaselineImportResult(SetupRevisionRecord? Baseline, string? Error);
 public sealed record StoredSvmSetup(string RawText, string FingerprintSha256);
+public sealed record SetupRevisionSummary(Guid Id, Guid SessionId, Guid? ParentRevisionId, string Name, string? CarIdentifier, string? SetupFormat, string Status, string? FingerprintSha256, DateTimeOffset CreatedAtUtc);
+public sealed record SetupRevisionDetails(SetupRevisionSummary Summary, IReadOnlyList<SvmSetting> Settings);
+public sealed record SetupSettingDifference(string? Section, string Name, string? FirstValue, string? FirstComment, string? SecondValue, string? SecondComment);
+public sealed record SetupComparison(Guid FirstId, Guid SecondId, string CarIdentifier, IReadOnlyList<SetupSettingDifference> Differences);
 
 public interface ISetupRevisionStore
 {
     Task<SetupProposalCreationResult> CreateProposalAsync(CreateSetupProposalCommand command, CancellationToken cancellationToken);
     Task<SetupBaselineImportResult> ImportBaselineAsync(ImportSetupBaselineCommand command, CancellationToken cancellationToken);
-    Task<IReadOnlyList<SetupRevisionRecord>> ListAsync(Guid sessionId, CancellationToken cancellationToken);
+    Task<IReadOnlyList<SetupRevisionSummary>> ListAsync(Guid sessionId, CancellationToken cancellationToken);
+    Task<SetupRevisionDetails?> GetAsync(Guid revisionId, CancellationToken cancellationToken);
+    Task<SetupComparison?> CompareAsync(Guid firstId, Guid secondId, CancellationToken cancellationToken);
 }
 
 public sealed class SetupRevisionStore(IDbContextFactory<TelemetryTrackerDbContext> dbContextFactory) : ISetupRevisionStore
@@ -43,6 +49,9 @@ public sealed class SetupRevisionStore(IDbContextFactory<TelemetryTrackerDbConte
         var existingBaselines = await db.SetupRevisions
             .Where(item => item.SessionId == command.SessionId && item.Status == "baseline" && item.CarIdentifier == document.VehicleClassSetting)
             .ToListAsync(cancellationToken);
+        var duplicate = existingBaselines.FirstOrDefault(item => TryReadStoredSvm(item)?.FingerprintSha256 == document.FingerprintSha256);
+        if (duplicate is not null) return new(duplicate, null);
+
         var parentRevisionId = existingBaselines.OrderByDescending(item => item.CreatedAtUtc).Select(item => (Guid?)item.Id).FirstOrDefault();
 
         var baseline = new SetupRevisionRecord
@@ -63,10 +72,72 @@ public sealed class SetupRevisionStore(IDbContextFactory<TelemetryTrackerDbConte
         return new(baseline, null);
     }
 
-    public async Task<IReadOnlyList<SetupRevisionRecord>> ListAsync(Guid sessionId, CancellationToken cancellationToken)
+    public async Task<IReadOnlyList<SetupRevisionSummary>> ListAsync(Guid sessionId, CancellationToken cancellationToken)
     {
         await using var db = await dbContextFactory.CreateDbContextAsync(cancellationToken);
         var revisions = await db.SetupRevisions.AsNoTracking().Where(item => item.SessionId == sessionId).ToListAsync(cancellationToken);
-        return revisions.OrderByDescending(item => item.CreatedAtUtc).ToList();
+        return revisions.OrderByDescending(item => item.CreatedAtUtc).Select(ToSummary).ToList();
     }
+
+    public async Task<SetupRevisionDetails?> GetAsync(Guid revisionId, CancellationToken cancellationToken)
+    {
+        await using var db = await dbContextFactory.CreateDbContextAsync(cancellationToken);
+        var revision = await db.SetupRevisions.AsNoTracking().SingleOrDefaultAsync(item => item.Id == revisionId, cancellationToken);
+        if (revision is null || revision.SetupFormat?.Equals("lmu-svm-v1", StringComparison.Ordinal) != true) return null;
+        var stored = TryReadStoredSvm(revision);
+        return stored is null ? null : new SetupRevisionDetails(ToSummary(revision), SvmSetupDocument.Parse(stored.RawText).Settings);
+    }
+
+    public async Task<SetupComparison?> CompareAsync(Guid firstId, Guid secondId, CancellationToken cancellationToken)
+    {
+        await using var db = await dbContextFactory.CreateDbContextAsync(cancellationToken);
+        var revisions = await db.SetupRevisions.AsNoTracking().Where(item => item.Id == firstId || item.Id == secondId).ToListAsync(cancellationToken);
+        if (revisions.Count != 2) return null;
+        var first = revisions.Single(item => item.Id == firstId);
+        var second = revisions.Single(item => item.Id == secondId);
+        if (string.IsNullOrWhiteSpace(first.CarIdentifier) || !string.Equals(first.CarIdentifier, second.CarIdentifier, StringComparison.Ordinal)) return null;
+
+        var firstStored = TryReadStoredSvm(first);
+        var secondStored = TryReadStoredSvm(second);
+        if (firstStored is null || secondStored is null) return null;
+
+        var firstSettings = SvmSetupDocument.Parse(firstStored.RawText).Settings.ToDictionary(setting => (setting.Section, setting.Name));
+        var secondSettings = SvmSetupDocument.Parse(secondStored.RawText).Settings.ToDictionary(setting => (setting.Section, setting.Name));
+        var keys = firstSettings.Keys.Union(secondSettings.Keys).OrderBy(key => key.Section).ThenBy(key => key.Name);
+        var differences = keys
+            .Select(key =>
+            {
+                firstSettings.TryGetValue(key, out var firstSetting);
+                secondSettings.TryGetValue(key, out var secondSetting);
+                return new SetupSettingDifference(key.Section, key.Name, firstSetting?.Value, firstSetting?.Comment, secondSetting?.Value, secondSetting?.Comment);
+            })
+            .Where(difference => difference.FirstValue != difference.SecondValue || difference.FirstComment != difference.SecondComment)
+            .ToList();
+
+        return new SetupComparison(firstId, secondId, first.CarIdentifier, differences);
+    }
+
+    private static StoredSvmSetup? TryReadStoredSvm(SetupRevisionRecord revision)
+    {
+        try
+        {
+            var stored = JsonSerializer.Deserialize<StoredSvmSetup>(revision.SetupValuesJson);
+            return string.IsNullOrEmpty(stored?.RawText) || string.IsNullOrEmpty(stored.FingerprintSha256) ? null : stored;
+        }
+        catch (JsonException)
+        {
+            return null;
+        }
+    }
+
+    private static SetupRevisionSummary ToSummary(SetupRevisionRecord revision) => new(
+        revision.Id,
+        revision.SessionId,
+        revision.ParentRevisionId,
+        revision.Name,
+        revision.CarIdentifier,
+        revision.SetupFormat,
+        revision.Status,
+        TryReadStoredSvm(revision)?.FingerprintSha256,
+        revision.CreatedAtUtc);
 }
