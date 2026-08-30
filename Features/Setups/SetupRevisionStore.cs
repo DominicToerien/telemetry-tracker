@@ -8,7 +8,7 @@ public sealed record CreateSetupProposalCommand(Guid SessionId, string Name, str
 public sealed record SetupProposalCreationResult(SetupRevisionRecord? Proposal, string? Error);
 public sealed record ImportSetupBaselineCommand(Guid SessionId, string FilePath);
 public sealed record SetupBaselineImportResult(SetupRevisionRecord? Baseline, string? Error);
-public sealed record StoredSvmSetup(string RawText, string FingerprintSha256);
+public sealed record StoredSvmSetup(string RawText, string RawContentBase64, string FingerprintSha256);
 public sealed record SetupRevisionSummary(Guid Id, Guid SessionId, Guid? ParentRevisionId, string Name, string? CarIdentifier, string? SetupFormat, string Status, string? FingerprintSha256, DateTimeOffset CreatedAtUtc);
 public sealed record SetupRevisionDetails(SetupRevisionSummary Summary, IReadOnlyList<SvmSetting> Settings);
 public sealed record SetupSettingDifference(string? Section, string Name, string? FirstValue, string? FirstComment, string? SecondValue, string? SecondComment);
@@ -62,7 +62,7 @@ public sealed class SetupRevisionStore(IDbContextFactory<TelemetryTrackerDbConte
             Name = Path.GetFileNameWithoutExtension(command.FilePath),
             CarIdentifier = document.VehicleClassSetting,
             SetupFormat = "lmu-svm-v1",
-            SetupValuesJson = JsonSerializer.Serialize(new StoredSvmSetup(document.WriteUnchanged(), document.FingerprintSha256)),
+            SetupValuesJson = JsonSerializer.Serialize(new StoredSvmSetup(document.SourceText, Convert.ToBase64String(document.WriteUnchangedBytes()), document.FingerprintSha256)),
             Rationale = "Imported immutable LMU baseline setup.",
             Status = "baseline",
             CreatedAtUtc = DateTimeOffset.UtcNow
@@ -122,7 +122,7 @@ public sealed class SetupRevisionStore(IDbContextFactory<TelemetryTrackerDbConte
         try
         {
             var stored = JsonSerializer.Deserialize<StoredSvmSetup>(revision.SetupValuesJson);
-            return string.IsNullOrEmpty(stored?.RawText) || string.IsNullOrEmpty(stored.FingerprintSha256) ? null : stored;
+            return string.IsNullOrEmpty(stored?.RawText) || string.IsNullOrEmpty(stored.RawContentBase64) || string.IsNullOrEmpty(stored.FingerprintSha256) ? null : stored;
         }
         catch (JsonException)
         {

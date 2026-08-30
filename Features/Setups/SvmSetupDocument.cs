@@ -7,24 +7,30 @@ public sealed record SvmSetting(string? Section, string Name, string Value, stri
 
 public sealed class SvmSetupDocument
 {
-    private SvmSetupDocument(string sourceText, string? vehicleClassSetting, IReadOnlyList<SvmSetting> settings)
+    private SvmSetupDocument(byte[] originalBytes, string sourceText, string? vehicleClassSetting, IReadOnlyList<SvmSetting> settings)
     {
+        OriginalBytes = originalBytes;
         SourceText = sourceText;
         VehicleClassSetting = vehicleClassSetting;
         Settings = settings;
     }
 
+    public byte[] OriginalBytes { get; }
     public string SourceText { get; }
     public string? VehicleClassSetting { get; }
     public IReadOnlyList<SvmSetting> Settings { get; }
-    public string FingerprintSha256 => Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(SourceText)));
+    public string FingerprintSha256 => Convert.ToHexString(SHA256.HashData(OriginalBytes));
 
     // This deliberately returns the original text. Formatting and unknown content are part of an LMU setup artifact.
     public string WriteUnchanged() => SourceText;
+    public byte[] WriteUnchangedBytes() => OriginalBytes.ToArray();
 
-    public static SvmSetupDocument Parse(string sourceText)
+    public static SvmSetupDocument Parse(string sourceText) => Parse(Encoding.UTF8.GetBytes(sourceText));
+
+    public static SvmSetupDocument Parse(byte[] originalBytes)
     {
-        ArgumentNullException.ThrowIfNull(sourceText);
+        ArgumentNullException.ThrowIfNull(originalBytes);
+        var sourceText = Encoding.UTF8.GetString(originalBytes).TrimStart('\uFEFF');
 
         var settings = new List<SvmSetting>();
         string? section = null;
@@ -61,14 +67,14 @@ public sealed class SvmSetupDocument
             }
         }
 
-        return new SvmSetupDocument(sourceText, vehicleClassSetting, settings);
+        return new SvmSetupDocument(originalBytes.ToArray(), sourceText, vehicleClassSetting, settings);
     }
 
     public static async Task<SvmSetupDocument> ReadAsync(string filePath, CancellationToken cancellationToken)
     {
         if (string.IsNullOrWhiteSpace(filePath)) throw new ArgumentException("A setup file path is required.", nameof(filePath));
-        var sourceText = await File.ReadAllTextAsync(filePath, cancellationToken);
-        return Parse(sourceText);
+        var sourceBytes = await File.ReadAllBytesAsync(filePath, cancellationToken);
+        return Parse(sourceBytes);
     }
 }
 

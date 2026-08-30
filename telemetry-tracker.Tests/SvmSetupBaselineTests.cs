@@ -1,4 +1,5 @@
 using System.Text.Json;
+using System.Text;
 using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 using telemetry_tracker.Features.Setups;
@@ -20,6 +21,7 @@ public sealed class SvmSetupBaselineTests : IDisposable
 
         Assert.Equal("Corvette_Z06_LMGT3R ELMS2025 GT3", document.VehicleClassSetting);
         Assert.Equal(source, document.WriteUnchanged());
+        Assert.Equal(Encoding.UTF8.GetBytes(source), document.WriteUnchangedBytes());
         Assert.Equal("1", document.Settings.Single(setting => setting.Name == "RWSetting").Value);
         Assert.Equal("1.5 deg", document.Settings.Single(setting => setting.Name == "RWSetting").Comment);
         Assert.Equal("REARWING", document.Settings.Single(setting => setting.Name == "RWSetting").Section);
@@ -68,6 +70,7 @@ public sealed class SvmSetupBaselineTests : IDisposable
         var stored = JsonSerializer.Deserialize<StoredSvmSetup>(second.Baseline.SetupValuesJson);
         Assert.NotNull(stored);
         Assert.Equal(await File.ReadAllTextAsync(setupPath), stored.RawText);
+        Assert.Equal(await File.ReadAllBytesAsync(setupPath), Convert.FromBase64String(stored.RawContentBase64));
 
         var comparison = await store.CompareAsync(first.Baseline.Id, second.Baseline.Id, CancellationToken.None);
         var difference = Assert.Single(comparison!.Differences);

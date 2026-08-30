@@ -28,7 +28,7 @@ Errors are JSON objects with an `error` field and a non-zero exit code. Consumer
 
 `setup files list --root <settings-root> --json` discovers `.svm` files below an LMU Settings directory and returns each file's track-relative directory, `VehicleClassSetting`, fingerprint, and parsed setting count.
 
-`setup import --session <session-id> --file <path> --json` imports an immutable baseline for a real setup file. The source text is stored losslessly with its SHA-256 fingerprint and is versioned against the latest baseline with the same exact `VehicleClassSetting` in that session.
+`setup import --session <session-id> --file <path> --json` imports an immutable baseline for a real setup file. The original source bytes are retained losslessly with their SHA-256 fingerprint and are versioned against the latest baseline with the same exact `VehicleClassSetting` in that session.
 
 `setup list --session <session-id> --json` returns lightweight revision metadata and fingerprints, never the raw source. `setup show <revision-id> --json` returns the parsed settings for an LMU baseline. `setup compare <first-revision-id> <second-revision-id> --json` returns only changed settings and refuses to compare different exact car identities.
 

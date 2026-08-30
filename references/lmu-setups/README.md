@@ -31,4 +31,4 @@ Before `/create-setup` writes LMU files, add representative fixtures from suppor
 
 The native client can inspect a user-selected LMU Settings root using `setup files list --root <path> --json`, then import a chosen file with `setup import --session <id> --file <path> --json`.
 
-The `VehicleClassSetting` inside the file is the car identity for baseline storage. File names and track folders are useful provenance, but user-defined names and series/year variants must not be used as a universal vehicle schema. The importer stores the original `.svm` text and a fingerprint without rewriting it.
+The `VehicleClassSetting` inside the file is the car identity for baseline storage. File names and track folders are useful provenance, but user-defined names and series/year variants must not be used as a universal vehicle schema. The importer stores the original `.svm` bytes and a fingerprint without rewriting it.

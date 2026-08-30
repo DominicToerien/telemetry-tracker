@@ -504,7 +504,7 @@ Status:
 - accepted
 
 Decision:
-- Treat an `.svm` setup as a lossless source artifact: store its original text and SHA-256 fingerprint, and use `VehicleClassSetting` rather than its filename to identify the car.
+- Treat an `.svm` setup as a lossless source artifact: store its original bytes and SHA-256 fingerprint, and use `VehicleClassSetting` rather than its filename to identify the car.
 - Parse sections, setting names, values, and comments only for inspection in this phase; do not rewrite values.
 
 Why:
