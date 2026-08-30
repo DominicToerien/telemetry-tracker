@@ -33,6 +33,8 @@ The persistent AI working context lives under [agent/](./agent/README.md), produ
 
 Notes:
 - The console app can start on non-Windows platforms, but LMU shared memory will be reported as unsupported/disconnected.
+- LMU live integration is officially supported only on Windows 10/11. Windows is the authoritative runtime for shared memory, setup files, plugins, hardware, and integration testing.
+- Linux remains suitable for development, builds, unit tests, documentation, and recorded/mock telemetry testing. Proton support is unofficial and must not shape the MVP architecture.
 - The human-facing MVP is installed and run natively on the same Windows machine as LMU; it is not a Docker workload.
 - This project has no Docker or ASP.NET server runtime. Those concerns belong to a future server project.
 - The complete deployment and transport boundary is documented in [agent/specs/architecture.md](./agent/specs/architecture.md).

@@ -20,6 +20,14 @@ The local application must run on the same Windows machine and in a context that
 
 Do not move live LMU acquisition or setup-file application into a Linux or Windows container. A bind mount could expose files, but it does not provide the required host shared-memory objects and would make setup-file permissions and lifecycle unnecessarily fragile.
 
+## Supported Runtime Boundary
+
+LMU live integration is officially supported only on Windows 10/11. Windows is the authoritative runtime for LMU shared memory, setup-file access, plugins, hardware, and integration testing.
+
+Linux is supported for development, builds, unit tests, documentation, and recorded/mock telemetry testing. The CLI must start gracefully on non-Windows systems and clearly report that live LMU functionality requires Windows.
+
+Proton support is unofficial. Do not add abstractions, deployment paths, or MVP requirements solely to accommodate Proton.
+
 ## Architecture Diagram
 
 ```mermaid
