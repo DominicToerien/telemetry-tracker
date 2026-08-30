@@ -40,3 +40,6 @@ packages/
 !.env.example
 .agent-workspace.json
 secrets.json
+
+# Local-first telemetry storage
+data/

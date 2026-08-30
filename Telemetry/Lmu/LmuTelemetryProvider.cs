@@ -1,4 +1,5 @@
 using System.Text;
+using telemetry_tracker.Features.Tracking;
 using telemetry_tracker.Features.TelemetryStatus;
 using telemetry_tracker.Telemetry.Lmu.Interop;
 
@@ -123,6 +124,42 @@ public sealed class LmuTelemetryProvider : ITelemetryStatusQueries
                 FuelLiters = playerTelemetry.mFuel,
                 MaxBrakePressure = maxBrakePressure
             };
+        }
+    }
+
+    internal TrackingTelemetryFrame? GetTrackingFrame()
+    {
+        lock (_gate)
+        {
+            if (!_state.Connected ||
+                _state.PlayerHasVehicle != true ||
+                _state.PlayerVehicleIndex is null ||
+                _state.TelemetryVehicles is null ||
+                _state.PlayerVehicleIndex.Value >= _state.TelemetryVehicles.Length ||
+                _state.LastTelemetryUpdateUtc is null)
+            {
+                return null;
+            }
+
+            var telemetry = _state.TelemetryVehicles[_state.PlayerVehicleIndex.Value];
+            var speedKph = Math.Sqrt(
+                (telemetry.mLocalVel.x * telemetry.mLocalVel.x) +
+                (telemetry.mLocalVel.y * telemetry.mLocalVel.y) +
+                (telemetry.mLocalVel.z * telemetry.mLocalVel.z)) * 3.6d;
+
+            return new TrackingTelemetryFrame(
+                _state.LastTelemetryUpdateUtc.Value,
+                telemetry.mLapNumber,
+                telemetry.mElapsedTime - telemetry.mLapStartET,
+                speedKph,
+                telemetry.mFilteredThrottle,
+                telemetry.mFilteredBrake,
+                telemetry.mFilteredSteering,
+                telemetry.mGear,
+                telemetry.mEngineRPM,
+                telemetry.mPos.x,
+                telemetry.mPos.y,
+                telemetry.mPos.z);
         }
     }
 
