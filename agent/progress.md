@@ -32,6 +32,8 @@ It should be updated whenever implementation meaningfully changes delivery statu
 - a non-authoritative LMU `.svm` format fixture is documented for future setup parsing and `/create-setup` work
 - a draft-PR-based session handoff skill and pull-request template are in place for transferring work across agents and computers
 - the native Windows MVP, optional Dockerized hosted platform, transport, and MCP boundaries are documented as required agent context
+- local tracking, SQLite session/lap persistence, terminal navigation, and initial skills are implemented on the current skills branch
+- the structured recorded-data contract supports `session -> laps -> lap summary -> telemetry trace` queries without exposing SQLite directly
 
 ## In Progress
 
