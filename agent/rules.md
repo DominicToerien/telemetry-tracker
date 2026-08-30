@@ -83,3 +83,4 @@ Examples:
 - Preserve console visibility for live telemetry verification.
 - If a new idea increases complexity without helping the current phase, defer it.
 - Do not claim repository automation exists for these agent files unless it has actually been implemented.
+- Before declaring a branch ready, inspect review and discussion comments on every open pull request, assess their applicability, and run an independent diff-based review. Record any material outcome in the draft PR handoff.

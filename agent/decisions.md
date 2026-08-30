@@ -459,3 +459,41 @@ Supersedes:
 - `Supabase DbContext Uses .env Configuration With Conditional Registration`
 - `Standardize Supabase .env Loading On ASP.NET ConnectionStrings Convention`
 - `EF Core Migrations Run Automatically On Startup When Persistence Is Configured`
+
+## 2026-08-30 - Stable CLI Is The Recorded Telemetry Integration Boundary
+
+Status:
+- accepted
+
+Decision:
+- Expose recorded data through a nested JSON CLI contract: session, its laps, a lap summary, then that lap's sampled telemetry trace.
+- Keep SQLite private implementation detail; bundled and user-created skills use the CLI contract instead.
+
+Why:
+- Agent workflows need a stable, inspectable local interface without coupling to persistence schema or granting direct file access.
+- Keeping summary and trace queries separate limits default AI context while preserving detailed evidence when needed.
+
+Alternatives considered:
+- Let skills query the SQLite database directly.
+- Return full traces with every lap summary.
+- Add MCP before the CLI contract is mature.
+
+Tradeoffs:
+- CLI shapes now need compatibility discipline and focused tests.
+- Full trace queries are an explicit extra command, which adds one step for deep analysis.
+
+## 2026-08-30 - Abstain From LMU Setup Generation Without Car-Specific Validation
+
+Status:
+- accepted
+
+Decision:
+- Refuse setup-generation requests until the application has a validated baseline setup and supported setting definitions for the exact LMU car.
+
+Why:
+- A stored `{}` record or generic recommendation can look like a real setup while containing no safe, actionable LMU configuration.
+- Telemetry evidence must be combined with the car's actual setup contract, driver feedback, and preserved source-file context before producing a setup users may apply.
+
+Consequences:
+- The current `setup propose` command returns a clear refusal and does not persist an empty proposal.
+- The next real setup slice requires representative car-specific setup files and parser/writer validation before output is enabled.
