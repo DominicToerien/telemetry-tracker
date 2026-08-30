@@ -25,7 +25,7 @@ public sealed class CliCommandRunner(
         {
             "sessions" when args.ElementAtOrDefault(1) == "list" => await data.ListSessionsAsync(cancellationToken),
             "sessions" when args.ElementAtOrDefault(1) == "show" => await GetSessionAsync(args, cancellationToken),
-            "laps" when args.ElementAtOrDefault(1) == "list" => await data.ListLapsAsync(GetGuidOption(args, "--session"), cancellationToken),
+            "laps" when args.ElementAtOrDefault(1) == "list" => await ListLapsAsync(args, cancellationToken),
             "laps" when args.ElementAtOrDefault(1) == "show" => await GetLapAsync(args, cancellationToken),
             "laps" when args.ElementAtOrDefault(1) == "compare" => await CompareLapsAsync(args, cancellationToken),
             "telemetry" when args.ElementAtOrDefault(1) == "status" => telemetry.GetStatus(),
@@ -51,13 +51,20 @@ public sealed class CliCommandRunner(
         var name = GetOption(args, "--name");
         var feedback = GetOption(args, "--feedback");
         if (string.IsNullOrWhiteSpace(name) || string.IsNullOrWhiteSpace(feedback)) return new { error = "--name and --feedback are required." };
-        var proposal = await setups.CreateProposalAsync(new CreateSetupProposalCommand(sessionId, name, feedback), cancellationToken);
-        return proposal is null ? new { error = "Session was not found." } : proposal;
+        var result = await setups.CreateProposalAsync(new CreateSetupProposalCommand(sessionId, name, feedback), cancellationToken);
+        return result.Error is null ? result.Proposal! : new { error = result.Error };
     }
 
     private static string? GetOption(string[] args, string option) => args.SkipWhile(arg => arg != option).Skip(1).FirstOrDefault();
     private static Guid? GetGuidOption(string[] args, string option) => Guid.TryParse(GetOption(args, option), out var value) ? value : null;
     private static Guid? GetGuidArgument(string[] args, int index) => index < args.Length && Guid.TryParse(args[index], out var value) ? value : null;
+
+    private async Task<object> ListLapsAsync(string[] args, CancellationToken cancellationToken)
+    {
+        var sessionText = GetOption(args, "--session");
+        if (sessionText is not null && !Guid.TryParse(sessionText, out _)) return new { error = "--session must be a valid session ID." };
+        return await data.ListLapsAsync(GetGuidOption(args, "--session"), cancellationToken);
+    }
 
     private async Task<object> GetSessionAsync(string[] args, CancellationToken cancellationToken)
     {

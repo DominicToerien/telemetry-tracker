@@ -83,3 +83,5 @@ Examples:
 - Preserve console visibility for live telemetry verification.
 - If a new idea increases complexity without helping the current phase, defer it.
 - Do not claim repository automation exists for these agent files unless it has actually been implemented.
+- Treat the quality and safety of generated LMU car setups as a release-critical concern. Generate an LMU setup only from a validated baseline for the exact car, supported setting definitions, telemetry evidence, and explicit driver feedback; otherwise abstain clearly. Never emit empty, generic, or cross-car setup values as an LMU setup.
+- Before declaring a branch ready, inspect review and discussion comments on every open pull request, assess their applicability, and run an independent diff-based review. Record any material outcome in the draft PR handoff.

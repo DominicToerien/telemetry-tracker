@@ -73,6 +73,24 @@ public sealed class CliCommandRunnerTests : IDisposable
         Assert.Contains("valid lap ID", result.RootElement.GetProperty("error").GetString(), StringComparison.Ordinal);
     }
 
+    [Fact]
+    public async Task SetupProposal_RefusesToCreateAnEmptyLmuSetup()
+    {
+        var result = await RunAsync(CreateRunner(), "setup", "propose", "--session", _sessionId.ToString(), "--name", "more rotation", "--feedback", "understeer on entry", "--json");
+
+        Assert.Contains("validated, car-specific baseline", result.RootElement.GetProperty("error").GetString(), StringComparison.Ordinal);
+        await using var db = new TelemetryTrackerDbContext(_options);
+        Assert.Empty(await db.SetupRevisions.ToListAsync());
+    }
+
+    [Fact]
+    public async Task LapsList_RejectsAnInvalidSessionFilter()
+    {
+        var result = await RunAsync(CreateRunner(), "laps", "list", "--session", "not-a-guid", "--json");
+
+        Assert.Contains("valid session ID", result.RootElement.GetProperty("error").GetString(), StringComparison.Ordinal);
+    }
+
     public void Dispose()
     {
         SqliteConnection.ClearAllPools();

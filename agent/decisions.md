@@ -481,3 +481,19 @@ Alternatives considered:
 Tradeoffs:
 - CLI shapes now need compatibility discipline and focused tests.
 - Full trace queries are an explicit extra command, which adds one step for deep analysis.
+
+## 2026-08-30 - Abstain From LMU Setup Generation Without Car-Specific Validation
+
+Status:
+- accepted
+
+Decision:
+- Refuse setup-generation requests until the application has a validated baseline setup and supported setting definitions for the exact LMU car.
+
+Why:
+- A stored `{}` record or generic recommendation can look like a real setup while containing no safe, actionable LMU configuration.
+- Telemetry evidence must be combined with the car's actual setup contract, driver feedback, and preserved source-file context before producing a setup users may apply.
+
+Consequences:
+- The current `setup propose` command returns a clear refusal and does not persist an empty proposal.
+- The next real setup slice requires representative car-specific setup files and parser/writer validation before output is enabled.
