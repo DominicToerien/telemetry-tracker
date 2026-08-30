@@ -105,6 +105,46 @@ public sealed class LmuTelemetryProviderTests
         Assert.Equal(0.7, consoleSnapshot.MaxBrakePressure);
     }
 
+    [Fact]
+    public void GetTrackingFrame_MapsPlayerTelemetryToSourceAgnosticCaptureFrame()
+    {
+        var provider = new LmuTelemetryProvider();
+        var snapshot = CreateSnapshot();
+        snapshot.generic.events[(int)SharedMemoryEvent.SME_UPDATE_TELEMETRY] = 1;
+        snapshot.telemetry.activeVehicles = 1;
+        snapshot.telemetry.playerVehicleIdx = 0;
+        snapshot.telemetry.playerHasVehicle = true;
+
+        snapshot.telemetry.telemInfo[0].mLapNumber = 8;
+        snapshot.telemetry.telemInfo[0].mElapsedTime = 412.8;
+        snapshot.telemetry.telemInfo[0].mLapStartET = 300.0;
+        snapshot.telemetry.telemInfo[0].mFilteredThrottle = 0.75;
+        snapshot.telemetry.telemInfo[0].mFilteredBrake = 0.2;
+        snapshot.telemetry.telemInfo[0].mFilteredSteering = -0.1;
+        snapshot.telemetry.telemInfo[0].mGear = 5;
+        snapshot.telemetry.telemInfo[0].mEngineRPM = 7800;
+        snapshot.telemetry.telemInfo[0].mPos = new TelemVect3 { x = 12, y = 3, z = -44 };
+        snapshot.telemetry.telemInfo[0].mLocalVel = new TelemVect3 { z = 50 };
+        var capturedAt = new DateTimeOffset(2026, 8, 29, 10, 0, 0, TimeSpan.Zero);
+
+        provider.ApplySharedMemorySnapshot(snapshot, capturedAt);
+        var frame = provider.GetTrackingFrame();
+
+        Assert.NotNull(frame);
+        Assert.Equal(capturedAt, frame.CapturedAtUtc);
+        Assert.Equal(8, frame.LapNumber);
+        Assert.Equal(112.8, frame.LapElapsedSeconds, 3);
+        Assert.Equal(180, frame.SpeedKph, 3);
+        Assert.Equal(0.75, frame.Throttle);
+        Assert.Equal(0.2, frame.Brake);
+        Assert.Equal(-0.1, frame.Steering);
+        Assert.Equal(5, frame.Gear);
+        Assert.Equal(7800, frame.Rpm);
+        Assert.Equal(12, frame.PositionX);
+        Assert.Equal(3, frame.PositionY);
+        Assert.Equal(-44, frame.PositionZ);
+    }
+
     private static SharedMemoryObjectOut CreateSnapshot() =>
         new()
         {

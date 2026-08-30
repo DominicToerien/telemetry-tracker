@@ -11,6 +11,7 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.Extensions.Hosting" Version="8.0.1" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="8.0.8" />
   </ItemGroup>
 
   <ItemGroup>
@@ -20,6 +21,7 @@
   <ItemGroup>
     <Compile Remove="telemetry-tracker.Tests\**\*.cs" />
     <EmbeddedResource Remove="telemetry-tracker.Tests\**\*" />
+    <Content Remove="telemetry-tracker.Tests\**\*" />
     <None Remove="telemetry-tracker.Tests\**\*" />
   </ItemGroup>
 

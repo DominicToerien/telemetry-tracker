@@ -340,6 +340,21 @@ Tradeoffs:
 Supersedes:
 - Refines `Single Process ASP.NET Core API` and `Single Codebase With Collector And Hosted Server Roles` by moving them out of the primary MVP experience; their reusable foundations and later hosted direction remain valid.
 
+## 2026-08-29 - In-Memory Tracking Core Before Local Persistence
+
+Status:
+- accepted
+
+Decision:
+- Implement the Phase 1 tracking lifecycle, sampling, lap-boundary detection, trace construction, and summary calculation entirely in memory.
+- Keep capture input source-agnostic through a compact telemetry-frame contract, with the existing LMU reader acting only as an adapter.
+
+Why:
+- The CLI/TUI and local persistence phases both need stable capture behaviour, but neither should determine how telemetry is sampled or when a lap is complete.
+
+Consequences:
+- Stopping tracking deliberately discards a partial lap until persistence semantics are introduced.
+
 ## 2026-08-29 - LMU Setup Examples Are Non-Authoritative Format Fixtures
 
 Status:
