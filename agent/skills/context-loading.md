@@ -4,6 +4,7 @@ Before starting any task, read:
 
 - `/agent/README.md`
 - `/agent/specs/product.md`
+- `/agent/specs/architecture.md`
 - `/agent/specs/plan.md`
 - `/agent/workflow.md`
 - `/agent/rules.md`
@@ -21,6 +22,7 @@ Use them as the primary source of truth for:
 - Architectural history and decisions
 - Delivery workflow
 - Architectural constraints
+- Runtime, deployment, transport, and Docker boundaries
 - Behavioural rules for the agent
 
 If instructions conflict:

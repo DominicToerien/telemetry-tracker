@@ -5,6 +5,7 @@ Before performing any task:
 1. Read the following files:
    - `/agent/README.md`
    - `/agent/specs/product.md`
+   - `/agent/specs/architecture.md`
    - `/agent/specs/plan.md`
    - `/agent/workflow.md`
    - `/agent/rules.md`
@@ -30,6 +31,7 @@ Before performing any task:
 - `agent/README.md` explains the agent-facing folder structure and how the context files relate to one another.
 - `agent/specs/product.md` defines the product and architectural intent.
 - `agent/specs/plan.md` defines the stable execution-plan entry path.
+- `agent/specs/architecture.md` defines the native Windows and optional hosted deployment boundaries.
 - `agent/workflow.md` defines how work should be broken down and validated.
 - `agent/rules.md` defines guardrails that should not be casually violated.
 - `agent/progress.md` defines the current delivery snapshot.

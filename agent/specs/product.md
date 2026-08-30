@@ -74,6 +74,8 @@ The later hosted plan remains valid:
 - a hosted server may accept ingestion, synchronize data, persist shared history, and serve API/frontend clients
 - database and hosted service credentials remain server-side
 
+The deployment boundary is defined in [architecture.md](./architecture.md): the LMU-facing MVP is installed and run natively on Windows, while the optional later hosted platform is a separate Docker-suitable deployment. The native app synchronizes completed artifacts over authenticated HTTPS; MCP is reserved for agent tooling and is not the frontend or synchronization transport.
+
 ## Operational Model
 
 The MVP application:

@@ -385,3 +385,29 @@ Tradeoffs:
 - Incomplete but valuable work may use explicitly labelled signed WIP commits.
 - Contributors must keep the draft PR handoff current when work pauses.
 - A receiving agent must still verify the branch and validation results rather than trusting the handoff text blindly.
+
+## 2026-08-30 - Native Windows MVP And Separate Hosted Platform
+
+Status:
+- accepted
+
+Decision:
+- Install and run the human-facing LMU collector, local telemetry host, persistence, setup management, CLI/TUI, and skills natively on the Windows machine running LMU.
+- Do not containerize the live LMU-facing MVP.
+- Reserve Docker for CI/testing and the optional later hosted API/platform.
+- Use authenticated HTTPS for native-to-hosted synchronization, HTTP/WebSocket APIs for the web frontend, and MCP for agent-facing tools.
+
+Why:
+- LMU integration depends on host Windows shared-memory objects and local setup files.
+- The driving loop must work offline and remain independent of Docker, hosted services, and network availability.
+- Explicit transport responsibilities prevent MCP, frontend APIs, and synchronization from becoming conflated.
+
+Alternatives considered:
+- Run the local collector in the existing Linux Docker image.
+- Use a Windows container with mounted setup directories.
+- Require the hosted platform for live telemetry and local product use.
+
+Tradeoffs:
+- The project needs a native Windows packaging and update path.
+- The later server role should gain an explicit entry point or project before its Docker deployment matures.
+- Shared application contracts remain useful, but native and hosted secrets, adapters, and runtime dependencies must stay separated.

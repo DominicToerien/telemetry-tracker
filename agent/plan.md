@@ -12,6 +12,8 @@ Evolution model for this plan:
 - later: hosted API, synchronization, Supabase persistence, and graphical frontend
 - all interfaces reuse the same application commands and queries
 
+The canonical deployment, transport, MCP, and Docker boundaries are defined in [specs/architecture.md](./specs/architecture.md). In particular, the live LMU-facing MVP runs natively on Windows and is not containerized.
+
 ## Product Goal
 
 Deliver a running terminal product where:

@@ -10,6 +10,8 @@ Its purpose is to keep product understanding, working rules, workflow guidance, 
   The first file the agent should follow before any task.
 - [specs/README.md](/abs/path/c:/Users/toeri/source/repos/telemetry-tracker/agent/specs/README.md)
   Product-facing specifications that the agent should read at startup.
+- [specs/architecture.md](./specs/architecture.md)
+  Canonical native Windows, hosted platform, transport, MCP, and Docker boundaries.
 - [skills/README.md](/abs/path/c:/Users/toeri/source/repos/telemetry-tracker/agent/skills/README.md)
   Index of project-specific skills the agent should use when relevant.
 - [workflow.md](/abs/path/c:/Users/toeri/source/repos/telemetry-tracker/agent/workflow.md)

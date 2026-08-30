@@ -1,4 +1,6 @@
-# See https://aka.ms/customizecontainer to learn how to customize your debug container and how Visual Studio uses this Dockerfile to build your images for faster debugging.
+# This Linux image supports CI/testing and the later hosted server role.
+# It is not the runtime or installation path for the native Windows LMU-facing MVP.
+# See agent/specs/architecture.md for the canonical deployment boundary.
 
 # This stage is used when running from VS in fast mode (Default for Debug configuration)
 FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS base

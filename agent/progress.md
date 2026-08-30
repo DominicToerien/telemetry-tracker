@@ -34,6 +34,7 @@ It should be updated whenever implementation meaningfully changes delivery statu
 - branch-agnostic PM chat guidance is in place for planning-first workflows
 - a non-authoritative LMU `.svm` format fixture is documented for future setup parsing and `/create-setup` work
 - a draft-PR-based session handoff skill and pull-request template are in place for transferring work across agents and computers
+- the native Windows MVP, optional Dockerized hosted platform, transport, and MCP boundaries are documented as required agent context
 
 ## In Progress
 

@@ -36,8 +36,9 @@ The persistent AI working context lives under [agent/](./agent/README.md), produ
 
 Notes:
 - The API can still run on non-Windows platforms, but LMU shared memory will be reported as unsupported/disconnected.
-- The project currently defaults to a Linux Docker target for container tooling, but live LMU telemetry is a Windows-only runtime feature.
-- End users must run the collector locally on the same machine that can access LMU shared memory.
+- The human-facing MVP is installed and run natively on the same Windows machine as LMU; it is not a Docker workload.
+- The current Linux Docker target is retained for CI/testing and the later hosted server role, not for live LMU acquisition or local setup-file management.
+- The complete deployment and transport boundary is documented in [agent/specs/architecture.md](./agent/specs/architecture.md).
 
 ## Quick Start
 
@@ -156,8 +157,11 @@ This endpoint is for bring-up/debugging and should not be treated as a stable pu
 
 Deferred deployment model after the local terminal and skills workflow is useful:
 - user runs local collector build on Windows
-- collector reads LMU shared memory and posts tracked lap payloads to hosted API
+- native app reads LMU shared memory and optionally posts completed session/lap artifacts to the hosted API over authenticated HTTPS
 - hosted API owns Supabase credentials and persistence
+- web frontend consumes HTTP/WebSocket APIs; agents may use MCP over mature capabilities
+
+MCP is not the synchronization protocol or the frontend transport. The local application remains fully usable when the hosted platform or network is unavailable.
 
 Security boundary:
 - do not ship real DB connection strings to end users
