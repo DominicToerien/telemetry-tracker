@@ -43,14 +43,15 @@ If the chat is intended to be planning-only, use the `agent/skills/pm-chat.md` s
 
 ### 2. Generate Execution Plan
 
-- Ask AI to create or refine `agent/plan.md`
-- Mirror a concise execution-facing version in `agent/specs/plan.md` when useful
-- Review and refine the plan before implementation
+- Create or refine `agent/plans/current.md` with a bounded outcome, scope, and acceptance criteria.
+- Update `agent/plans/roadmap.md` only when future sequencing changes.
+- Use `agent/plan.md` only as a detailed historical design reference.
+- Review and refine the current plan before implementation.
 
 ### 2.5. Maintain Decision and Progress Context
 
-- Record meaningful architecture and scope decisions in `agent/decisions.md`
-- Keep the current delivery snapshot in `agent/progress.md`
+- Record durable architecture and scope decisions in `agent/decisions.md` and update `agent/decisions/README.md`.
+- Keep the current delivery snapshot in `agent/current.md`.
 - Update both in the same task when relevant changes are made
 
 ### 3. Execute in Vertical Slices
@@ -74,8 +75,8 @@ After each step:
 - simplify where necessary
 - remove unnecessary abstractions
 - ensure alignment with architecture
-- update `agent/progress.md` if the current state changed
-- update `agent/decisions.md` if a meaningful decision was made or revised
+- update `agent/current.md` if verified repository-level state changed
+- update the decision log and index if a durable decision was made or revised
 - update the draft PR handoff before transferring incomplete work to another session or environment
 
 ### 5. Introduce Real Integrations Last

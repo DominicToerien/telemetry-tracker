@@ -2,15 +2,13 @@
 
 After completing a meaningful phase or slice, update:
 
-- `/agent/progress.md`
+- `agent/current.md`
 
 Include:
 
-- Phase completed
-- Files added or modified
-- Behaviour implemented
-- How to test
-- Known limitations
+- Verified capabilities
+- Active slice
+- Changed blockers or constraints
 
 Update progress when the project state meaningfully changes.
 
@@ -20,4 +18,4 @@ Do not update progress for:
 - Refactors with no delivery impact
 - Incomplete work that is not yet usable or reviewable
 
-Keep entries concise and execution-focused so another agent can quickly understand the current delivery state.
+Keep the snapshot concise and execution-focused. Update its verification commit when implementation changes are committed.

@@ -34,7 +34,7 @@ Supersedes:
 ## 2026-05-04 - Single Process ASP.NET Core API
 
 Status:
-- accepted
+- superseded by `Native Client Is A Standalone Generic Host Application`
 
 Decision:
 - Build the application as a single ASP.NET Core Web API process using hosted background services.
@@ -101,7 +101,7 @@ Consequences:
 ## 2026-05-04 - Consolidated Agent Documentation Structure
 
 Status:
-- accepted
+- revised by `Progressive Disclosure For Agent Context`
 
 Decision:
 - Use `agent/` for AI-operating context, `agent/skills/` for project-specific skills, and `agent/specs/` for product-facing specifications.
@@ -118,7 +118,7 @@ Consequences:
 ## 2026-05-04 - Telemetry Status Refactored Into A Vertical Slice
 
 Status:
-- accepted
+- revised by `Native Client Is A Standalone Generic Host Application`; the handlers remain, while the HTTP surface was removed
 
 Decision:
 - Move the telemetry status HTTP surface from a controller-first shape into `Features/TelemetryStatus` with explicit query handlers and minimal endpoints.
@@ -135,7 +135,7 @@ Consequences:
 ## 2026-05-04 - Supabase DbContext Uses .env Configuration With Conditional Registration
 
 Status:
-- accepted
+- superseded by `Native Client Is A Standalone Generic Host Application`
 
 Decision:
 - Load local environment variables from a root `.env` file at startup and register `TelemetryTrackerDbContext` only when a Supabase connection string is actually configured.
@@ -153,7 +153,7 @@ Consequences:
 ## 2026-05-04 - Single Codebase With Collector And Hosted Server Roles
 
 Status:
-- accepted
+- superseded by `Native Client Is A Standalone Generic Host Application`
 
 Decision:
 - Keep local telemetry collection and hosted ingestion/query capabilities in the same project, with role-specific runtime behavior.
@@ -204,7 +204,7 @@ Consequences:
 ## 2026-05-04 - Live Telemetry Console Uses A Single Updating Status Row
 
 Status:
-- accepted
+- revised; the display updates in place but wraps into a status block when terminal width requires it
 
 Decision:
 - Render live telemetry verification as a single updating console row instead of sequential log lines.
@@ -220,7 +220,7 @@ Consequences:
 ## 2026-05-05 - Standardize Supabase .env Loading On ASP.NET ConnectionStrings Convention
 
 Status:
-- accepted
+- superseded by `Native Client Is A Standalone Generic Host Application`
 
 Decision:
 - Replace the custom `.env` parser with `DotNetEnv` and standardize local database configuration on `ConnectionStrings__Supabase`.
@@ -238,7 +238,7 @@ Consequences:
 ## 2026-05-05 - EF Core Migrations Run Automatically On Startup When Persistence Is Configured
 
 Status:
-- accepted
+- superseded by `Native Client Is A Standalone Generic Host Application`
 
 Decision:
 - Resolve `TelemetryTrackerDbContext` during startup and call `dbContext.Database.Migrate()` automatically when the DbContext is registered.
@@ -256,7 +256,7 @@ Consequences:
 ## 2026-05-06 - Read Models Are Projected Asynchronously Behind Commands
 
 Status:
-- accepted
+- deferred hosted guidance
 
 Decision:
 - Future CQRS write flows should persist write-side data first, then hand read-model creation or refresh work to a background worker instead of blocking the API response.
@@ -275,7 +275,7 @@ Consequences:
 ## 2026-05-06 - Parallel Agent Work Uses Git Worktrees With Workspace-Specific Runtime Settings
 
 Status:
-- accepted
+- revised by `Native Client Is A Standalone Generic Host Application`; worktree isolation remains, API port allocation does not
 
 Decision:
 - Support parallel local AI chats or agents by using git worktrees instead of sharing one branch checkout.
@@ -444,3 +444,27 @@ Supersedes:
 - `Supabase DbContext Uses .env Configuration With Conditional Registration`
 - `Standardize Supabase .env Loading On ASP.NET ConnectionStrings Convention`
 - `EF Core Migrations Run Automatically On Startup When Persistence Is Configured`
+
+## 2026-08-31 - Progressive Disclosure For Agent Context
+
+Status:
+- accepted
+
+Decision:
+- Use root `AGENTS.md` as a compact, tool-discoverable router.
+- Load only `agent/current.md` and `agent/rules.md` as baseline repository context, then load specifications, plans, skills, references, and historical decisions according to the task.
+- Keep a compact decision index and current plan while retaining comprehensive historical documents for selective lookup.
+- Give each category of information one canonical owner and use repository-relative links.
+
+Why:
+- Mandatory loading had grown to more than eight thousand words before the detailed plan or relevant code was inspected.
+- Active guidance was mixed with superseded decisions and historical narrative.
+- A task router preserves durable knowledge without spending context on unrelated domains or future phases.
+
+Consequences:
+- `agent/entry-point.md`, `agent/progress.md`, and `agent/specs/plan.md` remain compatibility pointers rather than parallel sources of truth.
+- Documentation changes must follow the ownership matrix in `AGENTS.md`.
+- Objective link and structure checks run through `scripts/validate_docs.py`; semantic freshness remains a review responsibility.
+
+Supersedes:
+- Revises `Consolidated Agent Documentation Structure` by replacing mandatory eager loading with progressive disclosure.

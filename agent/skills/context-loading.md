@@ -1,36 +1,13 @@
-# Context Enforcer
+# Context Loading
 
-Before starting any task, read:
+Use [the root agent guide](../../AGENTS.md) to load context progressively.
 
-- `/agent/README.md`
-- `/agent/specs/product.md`
-- `/agent/specs/architecture.md`
-- `/agent/specs/plan.md`
-- `/agent/workflow.md`
-- `/agent/rules.md`
-- `/agent/progress.md`
-- `/agent/decisions.md`
-- `/agent/iterations.md`
-- `/agent/skills/README.md`
+For every task, read only:
 
-If these files have not been read, do not proceed.
+- `AGENTS.md`
+- `agent/current.md`
+- `agent/rules.md`
 
-Use them as the primary source of truth for:
+Then select task-specific specifications, plans, decisions, references, and skills from the routing table in `AGENTS.md`. Search headings or the decision index before opening a long document. Historical context is available when needed; it is not startup context.
 
-- Product scope
-- Current delivery state
-- Architectural history and decisions
-- Delivery workflow
-- Architectural constraints
-- Runtime, deployment, transport, and Docker boundaries
-- Behavioural rules for the agent
-
-If instructions conflict:
-
-1. Follow these project files
-2. Call out the conflict explicitly
-3. Explain which instruction was followed
-
-Do not assume older conversation context overrides the project files unless the user clearly changes the direction.
-
-Use this skill before any implementation, planning, review, or refactor task.
+When documentation and code disagree, verify the code and report the stale document. Do not silently treat an old plan or accepted-but-superseded decision as current behavior.
