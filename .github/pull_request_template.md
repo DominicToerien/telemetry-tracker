@@ -10,6 +10,15 @@
 
 <!-- List exact commands and results. Call out tests not run and known failures. -->
 
+- [ ] If Markdown changed, `python3 scripts/validate_docs.py` passes.
+
+## Documentation impact
+
+<!-- Check the canonical owner rather than updating every document. -->
+
+- [ ] No product, architecture, delivery-state, plan, decision, or agent-rule documentation changed.
+- [ ] Relevant canonical documentation was updated according to `AGENTS.md`.
+
 ## Risks and follow-up
 
 <!-- Record known limitations, migration concerns, and deliberately deferred work. -->

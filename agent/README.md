@@ -1,53 +1,34 @@
-# Agent Workspace
+# Agent Documentation Map
 
-This folder is the persistent working context for the AI agent on this project.
+The root [AGENTS.md](../AGENTS.md) is the canonical entry point. This directory stores durable context behind that progressive-disclosure router.
 
-Its purpose is to keep product understanding, working rules, workflow guidance, and iteration history in one stable place so implementation stays aligned over time.
+## Ownership
 
-## Files
+| Path | Owns | Load when |
+|---|---|---|
+| [current.md](current.md) | Verified implementation state, active slice, blockers | Every repository task |
+| [rules.md](rules.md) | Repository workflow and naming guardrails | Every repository task |
+| [plans/current.md](plans/current.md) | Current slice scope and acceptance criteria | Implementing or planning the active slice |
+| [plans/roadmap.md](plans/roadmap.md) | Future sequence | Roadmap or product planning |
+| [specs/product.md](specs/product.md) | Durable product behavior and constraints | Product or feature design |
+| [specs/architecture.md](specs/architecture.md) | Runtime, deployment, transport, and ownership boundaries | Architectural work |
+| [decisions/README.md](decisions/README.md) | Current decision status and historical lookup | A prior decision may affect the task |
+| [decisions.md](decisions.md) | Full historical decision records | After selecting relevant entries from the index |
+| [workflow.md](workflow.md) | Planning, implementation, and validation process | Implementation or delivery planning |
+| [skills/README.md](skills/README.md) | Optional task-specific guides | Selecting a relevant project guide |
+| [plan.md](plan.md) | Archived comprehensive design | A task needs design detail absent from current specs |
+| [iterations.md](iterations.md) | Product evolution narrative | Historical research only |
 
-- [entry-point.md](/abs/path/c:/Users/toeri/source/repos/telemetry-tracker/agent/entry-point.md)
-  The first file the agent should follow before any task.
-- [specs/README.md](/abs/path/c:/Users/toeri/source/repos/telemetry-tracker/agent/specs/README.md)
-  Product-facing specifications that the agent should read at startup.
-- [specs/architecture.md](./specs/architecture.md)
-  Canonical native Windows, hosted platform, transport, MCP, and Docker boundaries.
-- [skills/README.md](/abs/path/c:/Users/toeri/source/repos/telemetry-tracker/agent/skills/README.md)
-  Index of project-specific skills the agent should use when relevant.
-- [workflow.md](/abs/path/c:/Users/toeri/source/repos/telemetry-tracker/agent/workflow.md)
-  The preferred AI-assisted development workflow for planning and execution.
-- [rules.md](/abs/path/c:/Users/toeri/source/repos/telemetry-tracker/agent/rules.md)
-  Hard project rules and guardrails.
-- [iterations.md](/abs/path/c:/Users/toeri/source/repos/telemetry-tracker/agent/iterations.md)
-  Project evolution history and major shifts in approach.
-- [decisions.md](/abs/path/c:/Users/toeri/source/repos/telemetry-tracker/agent/decisions.md)
-  Major architectural decisions, when they were made, and why.
-- [progress.md](/abs/path/c:/Users/toeri/source/repos/telemetry-tracker/agent/progress.md)
-  Current delivery snapshot, active phase, and outstanding work.
-- [plan.md](/abs/path/c:/Users/toeri/source/repos/telemetry-tracker/agent/plan.md)
-  The detailed current implementation plan.
+Compatibility pointers [entry-point.md](entry-point.md), [progress.md](progress.md), and [specs/plan.md](specs/plan.md) remain for older prompts and direct links. They route to the canonical files and should not grow into parallel sources of truth.
 
-## Usage
+## Maintenance rules
 
-- Treat this folder as long-lived context, not scratch notes.
-- Update these files when architecture, workflow, or project direction changes.
-- Update `decisions.md` when a meaningful architectural or scope decision is made.
-- Update `progress.md` when implementation changes the project status, completed work, or current focus.
-- Prefer refining these files instead of repeating the same guidance in prompts.
-- If instructions elsewhere conflict with this folder, call that out explicitly and resolve the conflict deliberately.
+- Update only the document that owns the changed information.
+- Link to canonical material instead of repeating it.
+- Put temporary task state in the task's draft PR handoff, not long-lived project context.
+- Add durable decisions to the historical log and update the compact decision index in the same change.
+- Move completed plans to an archive rather than keeping them in startup context.
+- Use repository-relative links so documentation works in GitHub, worktrees, Windows, and Linux.
+- Run `python3 scripts/validate_docs.py` after changing Markdown.
 
-## Auto-Update Expectation
-
-These files are not automatically updated by repository tooling yet.
-
-For now, they are agent-maintained:
-- when a change affects decisions, update `decisions.md` in the same task
-- when a change affects delivery status, update `progress.md` in the same task
-
-If true automation is wanted later, add a dedicated workflow or script to enforce these updates during development.
-
-## Folder Structure
-
-- `agent/` holds AI-operating context: workflow, rules, iteration history, progress, decisions, and the detailed execution plan.
-- `agent/specs/` holds product-facing specifications the agent should also read before work starts.
-- `agent/skills/` holds project-specific task skills that should be selected and used whenever they fit.
+These files are agent-maintained. Objective structure and link integrity are checked in CI; semantic freshness still requires review against the implementation.

@@ -1,5 +1,7 @@
 # Telemetry Tracker Plan
 
+> Historical comprehensive design. Use [plans/current.md](plans/current.md) for the active slice and [plans/roadmap.md](plans/roadmap.md) for future sequencing. Load sections from this document only when a task needs the additional detail.
+
 ## Summary
 
 Build a local-first telemetry workspace for Le Mans Ultimate using C#, Vertical Slice Architecture, and CQRS. The primary MVP is a Codex/Claude-style terminal application. It continuously reads telemetry, captures sessions and completed laps, presents sessions as directory-like contexts and laps as file-like items, and exposes stable CLI operations that skills use for coaching, comparison, and setup creation.

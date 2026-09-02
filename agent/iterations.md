@@ -1,5 +1,7 @@
 # Iteration History
 
+This is historical narrative. Load it only when investigating how the product direction evolved; current implementation state lives in [current.md](current.md).
+
 ## Initial Approach
 
 - Console app
