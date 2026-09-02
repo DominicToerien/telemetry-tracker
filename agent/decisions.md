@@ -340,6 +340,21 @@ Tradeoffs:
 Supersedes:
 - Refines `Single Process ASP.NET Core API` and `Single Codebase With Collector And Hosted Server Roles` by moving them out of the primary MVP experience; their reusable foundations and later hosted direction remain valid.
 
+## 2026-08-29 - In-Memory Tracking Core Before Local Persistence
+
+Status:
+- accepted
+
+Decision:
+- Implement the Phase 1 tracking lifecycle, sampling, lap-boundary detection, trace construction, and summary calculation entirely in memory.
+- Keep capture input source-agnostic through a compact telemetry-frame contract, with the existing LMU reader acting only as an adapter.
+
+Why:
+- The CLI/TUI and local persistence phases both need stable capture behaviour, but neither should determine how telemetry is sampled or when a lap is complete.
+
+Consequences:
+- Stopping tracking deliberately discards a partial lap until persistence semantics are introduced.
+
 ## 2026-08-29 - LMU Setup Examples Are Non-Authoritative Format Fixtures
 
 Status:
@@ -444,6 +459,61 @@ Supersedes:
 - `Supabase DbContext Uses .env Configuration With Conditional Registration`
 - `Standardize Supabase .env Loading On ASP.NET ConnectionStrings Convention`
 - `EF Core Migrations Run Automatically On Startup When Persistence Is Configured`
+
+## 2026-08-30 - Stable CLI Is The Recorded Telemetry Integration Boundary
+
+Status:
+- accepted
+
+Decision:
+- Expose recorded data through a nested JSON CLI contract: session, its laps, a lap summary, then that lap's sampled telemetry trace.
+- Keep SQLite private implementation detail; bundled and user-created skills use the CLI contract instead.
+
+Why:
+- Agent workflows need a stable, inspectable local interface without coupling to persistence schema or granting direct file access.
+- Keeping summary and trace queries separate limits default AI context while preserving detailed evidence when needed.
+
+Alternatives considered:
+- Let skills query the SQLite database directly.
+- Return full traces with every lap summary.
+- Add MCP before the CLI contract is mature.
+
+Tradeoffs:
+- CLI shapes now need compatibility discipline and focused tests.
+- Full trace queries are an explicit extra command, which adds one step for deep analysis.
+
+## 2026-08-30 - Abstain From LMU Setup Generation Without Car-Specific Validation
+
+Status:
+- accepted
+
+Decision:
+- Refuse setup-generation requests until the application has a validated baseline setup and supported setting definitions for the exact LMU car.
+
+Why:
+- A stored `{}` record or generic recommendation can look like a real setup while containing no safe, actionable LMU configuration.
+- Telemetry evidence must be combined with the car's actual setup contract, driver feedback, and preserved source-file context before producing a setup users may apply.
+
+Consequences:
+- The current `setup propose` command returns a clear refusal and does not persist an empty proposal.
+- The next real setup slice requires representative car-specific setup files and parser/writer validation before output is enabled.
+
+## 2026-08-30 - LMU Baselines Are Lossless, Car-Identified Source Artifacts
+
+Status:
+- accepted
+
+Decision:
+- Treat an `.svm` setup as a lossless source artifact: store its original bytes and SHA-256 fingerprint, and use `VehicleClassSetting` rather than its filename to identify the car.
+- Parse sections, setting names, values, and comments only for inspection in this phase; do not rewrite values.
+
+Why:
+- Real local examples show the same model can carry different series/year identifiers and filenames are user-defined.
+- Inline comments and unknown lines carry car-specific meaning that must survive until safe setting changes are validated.
+
+Consequences:
+- Baseline import is immutable and versioned per session and exact car identifier.
+- Generated LMU setup output remains disabled; the following slice must validate concrete setting changes and LMU round trips for each supported car.
 
 ## 2026-08-31 - Progressive Disclosure For Agent Context
 

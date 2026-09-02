@@ -22,6 +22,9 @@ Use this index to find the relevant architectural decision without loading the e
 | 2026-08-29 | Cross-session work uses branch and draft-PR handoffs | Accepted |
 | 2026-08-30 | Native Windows MVP and separate hosted platform | Accepted |
 | 2026-08-30 | Native client is a standalone Generic Host application | Accepted |
+| 2026-08-30 | Stable CLI is the recorded telemetry integration boundary | Accepted |
+| 2026-08-30 | Abstain from LMU setup generation without car-specific validation | Accepted |
+| 2026-08-30 | LMU baselines are lossless, car-identified source artifacts | Accepted |
 | 2026-08-31 | Progressive disclosure for agent context | Accepted |
 
 ## Superseded decisions

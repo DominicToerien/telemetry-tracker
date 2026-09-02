@@ -1,33 +1,31 @@
-# Current Plan: Tracking Core
+# Current Plan: Car-Specific Setup Modification
 
 ## Outcome
 
-Build the first complete tracking slice on top of the working LMU telemetry feed while keeping the native console application runnable.
+Enable the first safe setup modification only after validating supported settings and lossless LMU `.svm` round trips for a specific car.
 
 ## In scope
 
-- Explicit inactive and active tracking states.
-- Start and stop commands implemented as reusable application handlers.
-- In-memory buffering for the current lap while tracking is active.
-- Lap-boundary detection grounded in fields available from the LMU SDK.
-- A completed-lap summary and a bounded, sampled lap trace.
-- Deterministic tests using a mock or controlled telemetry source where live LMU is unnecessary.
-- Continued console visibility for telemetry connection state.
+- Select one exact LMU car identifier with representative baseline fixtures.
+- Define and validate the supported setting names, value domains, and encoded representation for that car.
+- Modify only explicitly supported values while preserving source bytes, comments, ordering, and unknown fields.
+- Parse the emitted setup again and verify a lossless round trip outside the intended changes.
+- Add focused tests for validation, rejection, preservation, and deterministic output.
 
 ## Out of scope
 
 - ASP.NET endpoints, hosted ingestion, Supabase, Docker, or frontend work.
 - Native AI chat or MCP adapters.
-- Interactive terminal navigation beyond what is necessary to control and verify tracking.
-- Setup export.
+- Broad multi-car setup generation.
+- Unvalidated recommendations or generic setup values.
+- Native AI chat, MCP adapters, synchronization, or frontend work.
 
 ## Acceptance criteria
 
-- Tracking can be started and stopped without disrupting telemetry reading.
-- Frames are persisted or retained only while tracking is active.
-- A lap transition produces one summary and one bounded trace without inventing LMU fields.
-- Meaningful state and lap-boundary behavior has focused automated coverage.
-- The application builds, tests pass, and disconnected/non-Windows startup behavior remains safe.
+- Unsupported cars, fields, and values are rejected without writing output.
+- A supported change preserves every byte or parsed element outside the intended setting edits.
+- Emitted setups parse successfully and retain the exact car identifier and source provenance.
+- The application builds and focused setup tests pass.
 
 ## Relevant context
 

@@ -3,6 +3,8 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using System.Text.Json;
 using System.Text.Json.Nodes;
+using telemetry_tracker.Features.Tracking;
+using telemetry_tracker.Features.Laps;
 using telemetry_tracker.Telemetry.Lmu.Native;
 
 namespace telemetry_tracker.Telemetry.Lmu;
@@ -15,15 +17,21 @@ public sealed class LmuTelemetryBackgroundService : BackgroundService
     private readonly LmuTelemetryProvider _provider;
     private readonly ILogger<LmuTelemetryBackgroundService> _logger;
     private readonly LmuTelemetryOptions _options;
+    private readonly ITrackingControl _tracking;
+    private readonly ILocalLapStore _lapStore;
     private int _lastConsoleBlockHeight;
     private bool _telemetryConsoleInitialized;
 
     public LmuTelemetryBackgroundService(
         LmuTelemetryProvider provider,
+        ITrackingControl tracking,
+        ILocalLapStore lapStore,
         IOptions<LmuTelemetryOptions> options,
         ILogger<LmuTelemetryBackgroundService> logger)
     {
         _provider = provider;
+        _tracking = tracking;
+        _lapStore = lapStore;
         _logger = logger;
         _options = options.Value;
     }
@@ -72,6 +80,20 @@ public sealed class LmuTelemetryBackgroundService : BackgroundService
                     {
                         var snapshot = session.CopySnapshot();
                         _provider.ApplySharedMemorySnapshot(snapshot, DateTimeOffset.UtcNow);
+                        var completedLap = _provider.GetTrackingFrame() is { } frame
+                            ? _tracking.Observe(frame)
+                            : null;
+                        if (completedLap is not null)
+                        {
+                            await _lapStore.SaveAsync(completedLap, stoppingToken);
+                            _logger.LogInformation(
+                                "[Lap Saved] lap={LapNumber} | time={LapTimeSeconds:F3}s | avgSpeed={AverageSpeedKph:F1} | maxSpeed={MaxSpeedKph:F1} | samples={SampleCount}",
+                                completedLap.LapNumber,
+                                completedLap.LapTimeSeconds,
+                                completedLap.AverageSpeedKph,
+                                completedLap.MaxSpeedKph,
+                                completedLap.Trace.Count);
+                        }
                         packetsSinceConsoleOutput++;
                         lastWarning = string.Empty;
 
@@ -120,7 +142,7 @@ public sealed class LmuTelemetryBackgroundService : BackgroundService
     private void WriteTelemetryConsoleLine(int packetsPerSecond)
     {
         var snapshot = _provider.GetConsoleSnapshot();
-        const string trackingState = "false";
+        var trackingState = _tracking.GetStatus().IsActive ? "true" : "false";
 
         if (!snapshot.Connected)
         {

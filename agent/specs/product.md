@@ -67,6 +67,12 @@ Skills are the initial AI experience, not a temporary throwaway implementation.
 
 `/create-setup` is a guided skill workflow. It combines telemetry, the active setup, setup history, and explicit driver feedback. It creates a versioned setup proposal, explains evidence and trade-offs, and requires confirmation before any export or application to LMU.
 
+### LMU Setup-Generation Safety
+
+The quality and safety of an outputted LMU car setup is release-critical. The application may generate an LMU setup only from a validated baseline for the exact car, supported setting definitions, telemetry evidence, and explicit driver feedback. It must otherwise abstain clearly; it must never emit empty, generic, or cross-car setup values as an LMU setup.
+
+This is a product behaviour enforced by the setup-generation feature. The setup skill carries the same constraint for AI workflows, while the project build rules remain focused on engineering process.
+
 ## Later Runtime Roles
 
 The later hosted plan remains valid:

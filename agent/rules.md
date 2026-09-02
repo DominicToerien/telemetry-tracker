@@ -45,3 +45,4 @@ If the user does not specify a type, select the best fit and state the choice.
 - Update current state or durable decisions only when their owned information actually changes.
 - Keep references aligned with real repository paths and use relative Markdown links.
 - Do not claim documentation automation exists beyond checks actually present in the repository.
+- Before declaring a branch ready, inspect review and discussion comments on every open pull request, assess their applicability, and run an independent diff-based review. Record any material outcome in the draft PR handoff.
