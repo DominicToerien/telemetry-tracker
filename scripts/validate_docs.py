@@ -67,10 +67,9 @@ def main() -> int:
 
         for match in LINK_PATTERN.finditer(text):
             raw_target = match.group(1)
-            if raw_target.startswith(EXTERNAL_PREFIXES) or raw_target.startswith("#"):
-                continue
-
             target = local_link_target(raw_target)
+            if target.startswith(EXTERNAL_PREFIXES) or target.startswith("#"):
+                continue
             if not target:
                 continue
             if target.startswith("/"):
