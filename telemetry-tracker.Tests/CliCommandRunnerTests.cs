@@ -99,6 +99,36 @@ public sealed class CliCommandRunnerTests : IDisposable
         Assert.Contains("valid session ID", result.RootElement.GetProperty("error").GetString(), StringComparison.Ordinal);
     }
 
+    [Fact]
+    public async Task SetupModify_CreatesVersionedBmwProposalFromLapAndFeedback()
+    {
+        var fixturePath = Path.GetFullPath(Path.Combine(
+            AppContext.BaseDirectory, "..", "..", "..", "..", "references", "lmu-setups", "bmw-m4-lmgt3", "monza-mid-df.svm"));
+        var store = new SetupRevisionStore(new TestDbContextFactory(_options));
+        var imported = await store.ImportBaselineAsync(new ImportSetupBaselineCommand(_sessionId, fixturePath), CancellationToken.None);
+
+        var result = await RunAsync(
+            CreateRunner(),
+            "setup", "modify",
+            "--source", imported.Baseline!.Id.ToString(),
+            "--lap", _lapId.ToString(),
+            "--name", "higher-downforce",
+            "--feedback", "rear instability",
+            "--set", "RWSetting=11",
+            "--set", "RearAntiSwaySetting=0",
+            "--json");
+
+        Assert.Equal("proposal", result.RootElement.GetProperty("proposal").GetProperty("status").GetString());
+        Assert.Equal(2, result.RootElement.GetProperty("changes").GetArrayLength());
+        await using var db = new TelemetryTrackerDbContext(_options);
+        var proposal = await db.SetupRevisions.SingleAsync(item => item.Status == "proposal");
+        Assert.Equal(imported.Baseline.Id, proposal.ParentRevisionId);
+        Assert.Equal(_lapId, proposal.SourceLapId);
+        Assert.Contains("rear instability", proposal.Rationale, StringComparison.Ordinal);
+        var stored = JsonSerializer.Deserialize<StoredSvmSetup>(proposal.SetupValuesJson);
+        Assert.Contains("RWSetting=11//4.6 deg", System.Text.Encoding.Latin1.GetString(Convert.FromBase64String(stored!.RawContentBase64)));
+    }
+
     public void Dispose()
     {
         SqliteConnection.ClearAllPools();
