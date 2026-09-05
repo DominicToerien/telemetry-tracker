@@ -26,6 +26,7 @@ Use this index to find the relevant architectural decision without loading the e
 | 2026-08-30 | Abstain from LMU setup generation without car-specific validation | Accepted |
 | 2026-08-30 | LMU baselines are lossless, car-identified source artifacts | Accepted |
 | 2026-08-31 | Progressive disclosure for agent context | Accepted |
+| 2026-09-05 | Proportional change workflow | Accepted |
 
 ## Superseded decisions
 

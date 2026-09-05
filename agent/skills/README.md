@@ -6,6 +6,8 @@ These are lightweight operational guides the agent should use when they match th
 
 ## Available Skills
 
+- [change-workflow/SKILL.md](./change-workflow/SKILL.md)
+  Route implementation work through the lightest useful path: direct execution, a compact contract, or a focused grill for material unresolved decisions.
 - [context-loading.md](context-loading.md)
   Load the minimal baseline and route to task-specific context.
 - [decision-logging.md](decision-logging.md)
@@ -29,5 +31,6 @@ These are lightweight operational guides the agent should use when they match th
 
 - Use the routing table in the root `AGENTS.md` to select a skill.
 - Select and use relevant skills whenever they clearly fit the task.
+- Use `change-workflow` for repository changes; it decides how much planning is actually warranted.
 - Do not force every skill on every task; choose the ones that materially improve correctness, consistency, or workflow discipline.
 - Use the session-handoff skill when pausing active implementation for another session, agent, or computer, or when resuming handed-off work.

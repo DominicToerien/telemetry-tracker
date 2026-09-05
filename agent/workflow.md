@@ -2,14 +2,28 @@
 
 ## Philosophy
 
-AI is treated as a junior engineer that requires:
+Use the least ceremony that prevents expensive misunderstanding. The agent should investigate facts and make reversible implementation choices autonomously; the user should decide product and architectural trade-offs that materially affect the result.
 
-- clear specifications
-- tight constraints
-- incremental guidance
-- continuous validation
+## Everyday Change Loop
 
-The goal is not to generate code, but to accelerate structured problem solving.
+Use `agent/skills/change-workflow/SKILL.md` for repository changes:
+
+1. Inspect the relevant context, code, tests, and authoritative references.
+2. Route the request to direct implementation, a compact contract, or a focused grill.
+3. Implement the smallest complete vertical slice after the scope is settled.
+4. Verify both engineering correctness and conformance to the agreed contract.
+5. Report the working outcome, validation, limitations, and any useful next slice.
+
+An explicit request to implement is enough to proceed when the outcome is bounded. Do not introduce an approval ceremony for routine work. Grill one material decision at a time only when a wrong assumption could significantly change behaviour, architecture, data contracts, user workflow, or scope.
+
+Keep ordinary working contracts in the conversation, issue, or pull request. Create additional specification artifacts only when work spans sessions, contains several independently reviewable behaviours, or needs durable asynchronous review.
+
+### How To Invoke It
+
+- `Implement <bounded change>`: route automatically and proceed without redundant approval when the scope is clear.
+- `Grill me about <idea>`: force the grill path; ask one material decision at a time and do not implement until the resulting contract is approved.
+- `Explore <idea>`: investigate options and trade-offs without creating files or implementing.
+- `Implement the approved contract`: execute the settled scope and verify against it.
 
 ## Core Workflow
 
@@ -43,10 +57,11 @@ If the chat is intended to be planning-only, use the `agent/skills/pm-chat.md` s
 
 ### 2. Generate Execution Plan
 
-- Create or refine `agent/plans/current.md` with a bounded outcome, scope, and acceptance criteria.
+- Create or refine `agent/plans/current.md` when the active slice changes or needs a durable, asynchronously reviewable contract.
+- For an ordinary bounded change, use the compact contract from the change workflow instead of creating another plan document.
 - Update `agent/plans/roadmap.md` only when future sequencing changes.
 - Use `agent/plan.md` only as a detailed historical design reference.
-- Review and refine the current plan before implementation.
+- Do not mirror the same task plan into multiple repository documents.
 
 ### 2.5. Maintain Decision and Progress Context
 
@@ -78,6 +93,7 @@ After each step:
 - update `agent/current.md` if verified repository-level state changed
 - update the decision log and index if a durable decision was made or revised
 - update the draft PR handoff before transferring incomplete work to another session or environment
+- verify the implementation against both repository standards and the agreed change contract
 
 ### 5. Introduce Real Integrations Last
 

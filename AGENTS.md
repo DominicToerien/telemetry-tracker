@@ -19,6 +19,7 @@ Do not load every file under `agent/`. Use the routing table below and inspect c
 
 | When the task concerns | Read |
 |---|---|
+| Any repository change | [change workflow](agent/skills/change-workflow/SKILL.md) |
 | Product scope, feature behavior, or roadmap | [product spec](agent/specs/product.md), then [roadmap](agent/plans/roadmap.md) when sequencing matters |
 | Runtime, deployment, transport, Docker, or MCP | [architecture spec](agent/specs/architecture.md) |
 | Implementing or planning the current slice | [current plan](agent/plans/current.md) and [workflow](agent/workflow.md) |
@@ -69,3 +70,5 @@ Update documentation in the same change only when its owned information changes:
 | Agent workflow or universal rule | this file, `agent/workflow.md`, or `agent/rules.md`, according to ownership |
 
 Do not update status documents for formatting-only changes. Prefer links to canonical information over copying it into multiple files. Run the documentation validator after modifying Markdown.
+
+Do not add process artifacts or request confirmation when the user has already authorized a bounded change.

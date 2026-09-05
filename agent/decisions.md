@@ -31,6 +31,24 @@ Supersedes:
 - Optional prior decision title
 ```
 
+## 2026-09-05 - Proportional Change Workflow
+
+Status:
+- accepted
+
+Decision:
+- Route repository changes through direct implementation, a compact conversational contract, or a focused decision grill according to ambiguity and rework risk.
+- Verify completed work against both engineering standards and the agreed contract.
+
+Why:
+- The repository already has extensive durable context, but lacked a clear trigger for when an implementation request needs clarification.
+- A proportional gate improves alignment without imposing proposal files and approval steps on routine work.
+
+Consequences:
+- Explicit, bounded implementation requests continue without redundant approval.
+- Material unresolved product or architecture choices are surfaced one at a time before code is written.
+- Working plans remain in conversation, issues, or pull requests unless their lifetime or review needs justify a durable artifact.
+
 ## 2026-05-04 - Single Process ASP.NET Core API
 
 Status:
