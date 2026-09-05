@@ -8,6 +8,7 @@ public sealed class TrackingCaptureService : ITrackingControl
     private Guid? _sessionId;
     private DateTimeOffset? _startedAtUtc;
     private int? _currentLapNumber;
+    private bool _currentLapStartedAtBoundary;
     private DateTimeOffset? _lastSampleAtUtc;
     private int _completedLapCount;
 
@@ -23,6 +24,7 @@ public sealed class TrackingCaptureService : ITrackingControl
             _sessionId = Guid.NewGuid();
             _startedAtUtc = startedAtUtc;
             _currentLapNumber = null;
+            _currentLapStartedAtBoundary = false;
             _lastSampleAtUtc = null;
             _currentLapFrames.Clear();
             _completedLapCount = 0;
@@ -37,6 +39,7 @@ public sealed class TrackingCaptureService : ITrackingControl
             _sessionId = null;
             _startedAtUtc = null;
             _currentLapNumber = null;
+            _currentLapStartedAtBoundary = false;
             _lastSampleAtUtc = null;
             _currentLapFrames.Clear();
             return CreateStatus();
@@ -63,14 +66,24 @@ public sealed class TrackingCaptureService : ITrackingControl
             if (_currentLapNumber is null)
             {
                 _currentLapNumber = frame.LapNumber;
+                return null;
             }
             else if (_currentLapNumber != frame.LapNumber)
             {
-                var completedLap = BuildCompletedLap();
+                var startedAtBoundary = frame.LapElapsedSeconds >= 0 && frame.LapElapsedSeconds <= 5;
+                var completedLap = _currentLapStartedAtBoundary &&
+                                   frame.LapNumber == _currentLapNumber + 1 &&
+                                   startedAtBoundary
+                    ? BuildCompletedLap()
+                    : null;
                 _currentLapFrames.Clear();
                 _currentLapNumber = frame.LapNumber;
+                _currentLapStartedAtBoundary = startedAtBoundary;
                 _lastSampleAtUtc = null;
-                AddSample(frame);
+                if (startedAtBoundary)
+                {
+                    AddSample(frame);
+                }
 
                 if (completedLap is not null)
                 {
@@ -78,6 +91,11 @@ public sealed class TrackingCaptureService : ITrackingControl
                 }
 
                 return completedLap;
+            }
+
+            if (!_currentLapStartedAtBoundary)
+            {
+                return null;
             }
 
             AddSample(frame);

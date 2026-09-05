@@ -1,6 +1,6 @@
 # Current Project State
 
-Last verified against commit: `99d5e98` (2026-09-02)
+Last verified: 2026-09-05
 
 ## Current phase
 
@@ -13,9 +13,11 @@ Telemetry Tracker is a runnable standalone .NET Generic Host console application
 - Displays live player telemetry in an updating console status block that wraps to the terminal width.
 - Exposes telemetry status and debug query handlers in `Features/TelemetryStatus`.
 - Validates and, when configured, normalizes the LMU shared-memory plugin configuration.
-- Tracks sessions and laps, retaining lap summaries and bounded sampled traces in local SQLite storage.
+- Tracks sessions and complete sequential laps, discarding the initial partial lap and retaining bounded sampled traces in local SQLite storage.
+- Retains completed laps in an ordered in-memory retry queue until local persistence succeeds.
 - Exposes the recorded session/lap/summary/trace hierarchy through stable JSON CLI queries.
 - Provides terminal workspace navigation and initial telemetry-coach and setup-proposal skills.
+- Validates terminal session/lap navigation and accepts quoted paths containing spaces.
 - Discovers, losslessly imports, versions, browses, and compares LMU `.svm` setup baselines by exact car identifier.
 - Refuses setup generation when no validated car-specific modification contract is available.
 - Includes focused tests for interop, tracking, persistence, CLI, and setup-baseline behavior.

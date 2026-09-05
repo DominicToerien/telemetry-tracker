@@ -11,7 +11,21 @@ public sealed class WorkspaceContext
         LapId = null;
     }
 
-    public void OpenLap(Guid lapId) => LapId = lapId;
-    public void Back() => LapId = null;
+    public void OpenLap(Guid lapId, Guid sessionId)
+    {
+        SessionId = sessionId;
+        LapId = lapId;
+    }
+
+    public void Back()
+    {
+        if (LapId is not null)
+        {
+            LapId = null;
+            return;
+        }
+
+        SessionId = null;
+    }
     public string Prompt => SessionId is null ? "telemetry-tracker /" : LapId is null ? $"telemetry-tracker / {SessionId}" : $"telemetry-tracker / {SessionId} / {LapId}";
 }

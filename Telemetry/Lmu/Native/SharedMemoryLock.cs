@@ -17,8 +17,16 @@ internal sealed unsafe class SharedMemoryLock : IDisposable
     public static SharedMemoryLock Create()
     {
         var sharedMemoryLock = new SharedMemoryLock();
-        sharedMemoryLock.Initialize();
-        return sharedMemoryLock;
+        try
+        {
+            sharedMemoryLock.Initialize();
+            return sharedMemoryLock;
+        }
+        catch
+        {
+            sharedMemoryLock.Dispose();
+            throw;
+        }
     }
 
     public bool Lock(uint milliseconds = Win32Native.INFINITE)
