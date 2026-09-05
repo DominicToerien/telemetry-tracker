@@ -22,6 +22,7 @@ builder.Services.Configure<LmuTelemetryOptions>(builder.Configuration.GetSection
 builder.Services.AddSingleton<LmuTelemetryProvider>();
 builder.Services.AddSingleton<TrackingCaptureService>();
 builder.Services.AddSingleton<ITrackingControl>(static sp => sp.GetRequiredService<TrackingCaptureService>());
+builder.Services.AddSingleton<CompletedLapPersistenceQueue>();
 builder.Services.AddSingleton<StartTrackingHandler>();
 builder.Services.AddSingleton<StopTrackingHandler>();
 builder.Services.AddSingleton<GetTrackingStatusHandler>();

@@ -18,20 +18,20 @@ public sealed class LmuTelemetryBackgroundService : BackgroundService
     private readonly ILogger<LmuTelemetryBackgroundService> _logger;
     private readonly LmuTelemetryOptions _options;
     private readonly ITrackingControl _tracking;
-    private readonly ILocalLapStore _lapStore;
+    private readonly CompletedLapPersistenceQueue _completedLaps;
     private int _lastConsoleBlockHeight;
     private bool _telemetryConsoleInitialized;
 
     public LmuTelemetryBackgroundService(
         LmuTelemetryProvider provider,
         ITrackingControl tracking,
-        ILocalLapStore lapStore,
+        CompletedLapPersistenceQueue completedLaps,
         IOptions<LmuTelemetryOptions> options,
         ILogger<LmuTelemetryBackgroundService> logger)
     {
         _provider = provider;
         _tracking = tracking;
-        _lapStore = lapStore;
+        _completedLaps = completedLaps;
         _logger = logger;
         _options = options.Value;
     }
@@ -42,7 +42,6 @@ public sealed class LmuTelemetryBackgroundService : BackgroundService
         await Task.Yield();
 
         _provider.SetEnabled(_options.Enabled);
-        ValidateLmuPrerequisites();
 
         if (!_options.Enabled)
         {
@@ -56,6 +55,8 @@ public sealed class LmuTelemetryBackgroundService : BackgroundService
             _logger.LogWarning("LMU shared memory is unavailable because the process is not running on Windows.");
             return;
         }
+
+        ValidateLmuPrerequisites();
 
         var staleAfter = TimeSpan.FromSeconds(Math.Max(_options.RetryInterval.TotalSeconds * 2, 10));
         var lastWarning = string.Empty;
@@ -85,15 +86,9 @@ public sealed class LmuTelemetryBackgroundService : BackgroundService
                             : null;
                         if (completedLap is not null)
                         {
-                            await _lapStore.SaveAsync(completedLap, stoppingToken);
-                            _logger.LogInformation(
-                                "[Lap Saved] lap={LapNumber} | time={LapTimeSeconds:F3}s | avgSpeed={AverageSpeedKph:F1} | maxSpeed={MaxSpeedKph:F1} | samples={SampleCount}",
-                                completedLap.LapNumber,
-                                completedLap.LapTimeSeconds,
-                                completedLap.AverageSpeedKph,
-                                completedLap.MaxSpeedKph,
-                                completedLap.Trace.Count);
+                            _completedLaps.Enqueue(completedLap);
                         }
+                        await PersistPendingLapsAsync(stoppingToken);
                         packetsSinceConsoleOutput++;
                         lastWarning = string.Empty;
 
@@ -105,6 +100,7 @@ public sealed class LmuTelemetryBackgroundService : BackgroundService
 
                     if (DateTimeOffset.UtcNow - lastConsoleOutputUtc >= ConsoleOutputInterval)
                     {
+                        await PersistPendingLapsAsync(stoppingToken);
                         WriteTelemetryConsoleLine(packetsSinceConsoleOutput);
                         packetsSinceConsoleOutput = 0;
                         lastConsoleOutputUtc = DateTimeOffset.UtcNow;
@@ -136,6 +132,20 @@ public sealed class LmuTelemetryBackgroundService : BackgroundService
                 loggedConnected = false;
                 await Task.Delay(_options.RetryInterval, stoppingToken);
             }
+        }
+    }
+
+    private async Task PersistPendingLapsAsync(CancellationToken cancellationToken)
+    {
+        foreach (var lap in await _completedLaps.FlushAsync(cancellationToken))
+        {
+            _logger.LogInformation(
+                "[Lap Saved] lap={LapNumber} | time={LapTimeSeconds:F3}s | avgSpeed={AverageSpeedKph:F1} | maxSpeed={MaxSpeedKph:F1} | samples={SampleCount}",
+                lap.LapNumber,
+                lap.LapTimeSeconds,
+                lap.AverageSpeedKph,
+                lap.MaxSpeedKph,
+                lap.Trace.Count);
         }
     }
 
@@ -295,7 +305,9 @@ public sealed class LmuTelemetryBackgroundService : BackgroundService
             Path.Combine(gameInstallPath, "Plugins"),
             Path.Combine(gameInstallPath, "Bin64", "Plugins")
         };
-        var configuredDllNames = _options.PluginDllNames ?? [];
+        var configuredDllNames = (_options.PluginDllNames ?? [])
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .ToArray();
 
         var foundDllPath = pluginDirectories
             .SelectMany(directory => configuredDllNames.Select(fileName => Path.Combine(directory, fileName)))

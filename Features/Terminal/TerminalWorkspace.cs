@@ -1,5 +1,7 @@
 using telemetry_tracker.Features.Cli;
 using telemetry_tracker.Features.Tracking;
+using telemetry_tracker.Features.TelemetryData;
+using System.Text;
 
 namespace telemetry_tracker.Features.Terminal;
 
@@ -7,6 +9,7 @@ public sealed class TerminalWorkspace(
     CliCommandRunner cli,
     StartTrackingHandler startTracking,
     StopTrackingHandler stopTracking,
+    ITelemetryDataQueries data,
     WorkspaceContext context)
 {
     public async Task RunAsync(CancellationToken cancellationToken)
@@ -22,7 +25,7 @@ public sealed class TerminalWorkspace(
                 return;
             }
 
-            var args = input.Trim().TrimStart('/').Split(' ', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+            var args = ParseArguments(input.Trim().TrimStart('/'));
             if (args.Length == 0)
             {
                 continue;
@@ -36,13 +39,26 @@ public sealed class TerminalWorkspace(
 
             if (args is ["open-session", var sessionText] && Guid.TryParse(sessionText, out var sessionId))
             {
+                if (await data.GetSessionAsync(sessionId, cancellationToken) is null)
+                {
+                    Console.WriteLine($"Session {sessionId} was not found.");
+                    continue;
+                }
+
                 context.OpenSession(sessionId);
                 continue;
             }
 
             if (args is ["open-lap", var lapText] && Guid.TryParse(lapText, out var lapId))
             {
-                context.OpenLap(lapId);
+                var lap = await data.GetLapAsync(lapId, cancellationToken);
+                if (lap is null)
+                {
+                    Console.WriteLine($"Lap {lapId} was not found.");
+                    continue;
+                }
+
+                context.OpenLap(lap.Id, lap.SessionId);
                 continue;
             }
 
@@ -76,5 +92,55 @@ public sealed class TerminalWorkspace(
 
             await cli.RunAsync(args, Console.Out, cancellationToken);
         }
+    }
+
+    internal static string[] ParseArguments(string input)
+    {
+        var arguments = new List<string>();
+        var current = new StringBuilder();
+        char? quote = null;
+
+        foreach (var character in input)
+        {
+            if (quote is not null)
+            {
+                if (character == quote)
+                {
+                    quote = null;
+                }
+                else
+                {
+                    current.Append(character);
+                }
+                continue;
+            }
+
+            if (character is '\'' or '"')
+            {
+                quote = character;
+            }
+            else if (char.IsWhiteSpace(character))
+            {
+                AddArgument(arguments, current);
+            }
+            else
+            {
+                current.Append(character);
+            }
+        }
+
+        AddArgument(arguments, current);
+        return arguments.ToArray();
+    }
+
+    private static void AddArgument(List<string> arguments, StringBuilder current)
+    {
+        if (current.Length == 0)
+        {
+            return;
+        }
+
+        arguments.Add(current.ToString());
+        current.Clear();
     }
 }
