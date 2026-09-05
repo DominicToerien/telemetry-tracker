@@ -6,6 +6,8 @@ These are lightweight operational guides the agent should use when they match th
 
 ## Available Skills
 
+- [change-workflow/SKILL.md](./change-workflow/SKILL.md)
+  Route implementation work through the lightest useful path: direct execution, a compact contract, or a focused grill for material unresolved decisions.
 - [context-loading.md](/abs/path/c:/Users/toeri/source/repos/telemetry-tracker/agent/skills/context-loading.md)
   Read the required project context before starting work.
 - [decision-logging.md](/abs/path/c:/Users/toeri/source/repos/telemetry-tracker/agent/skills/decision-logging.md)
@@ -30,5 +32,6 @@ These are lightweight operational guides the agent should use when they match th
 - Read this folder index from the agent entry point.
 - Read `agent/specs/` from the agent entry point before using task skills.
 - Select and use relevant skills whenever they clearly fit the task.
+- Use `change-workflow` for repository changes; it decides how much planning is actually warranted.
 - Do not force every skill on every task; choose the ones that materially improve correctness, consistency, or workflow discipline.
 - Always use the session-handoff skill when pausing active implementation for another session, agent, or computer, or when resuming handed-off work.
