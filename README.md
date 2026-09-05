@@ -13,7 +13,7 @@ The current project is only the standalone native client. A later hosted phase w
 The current implementation is intentionally narrow:
 - It reads LMU shared memory on Windows.
 - It keeps the latest copied scoring/telemetry snapshot in memory.
-- It renders a live single-line console telemetry status display for local verification while driving.
+- It renders an updating console telemetry status display for local verification while driving.
 - It keeps telemetry status/debug queries as application handlers for future CLI commands.
 - It does not yet include session/lap capture, the interactive TUI, skill-facing CLI operations, hosted ingestion, analytics, or a frontend.
 
@@ -21,9 +21,7 @@ The current implementation is intentionally narrow:
 
 This repository is in the LMU integration foundation phase.
 
-The durable project plan lives in [agent/plan.md](./agent/plan.md). Keep that file current as the project evolves so future work always has a reliable reference point.
-
-The persistent AI working context lives under [agent/](./agent/README.md), product-facing specifications live under [agent/specs/](./agent/specs/README.md), and project-specific task skills live under [agent/skills/](./agent/skills/README.md).
+AI-assisted work starts at [AGENTS.md](./AGENTS.md), which routes tasks to only the context they need. The compact delivery snapshot is [agent/current.md](./agent/current.md), and the active implementation scope is [agent/plans/current.md](./agent/plans/current.md).
 
 ## Requirements
 
@@ -118,23 +116,22 @@ Main flow:
 2. On Windows, it attempts to open the LMU event, file mapping, and shared lock objects.
 3. When LMU signals an update, the service copies the shared-memory layout into managed structs.
 4. `LmuTelemetryProvider` stores the latest thread-safe in-memory status/snapshot.
-5. The background service renders a live single-row console status line for local verification.
+5. The background service renders an updating console status block for local verification.
 6. The `Features/TelemetryStatus` slice provides reusable queries for future CLI/TUI adapters.
 
 Important files:
-- [agent/README.md](/abs/path/c:/Users/toeri/source/repos/telemetry-tracker/agent/README.md)
-- [agent/entry-point.md](/abs/path/c:/Users/toeri/source/repos/telemetry-tracker/agent/entry-point.md)
-- [agent/specs/README.md](/abs/path/c:/Users/toeri/source/repos/telemetry-tracker/agent/specs/README.md)
-- [agent/specs/product.md](/abs/path/c:/Users/toeri/source/repos/telemetry-tracker/agent/specs/product.md)
-- [agent/specs/plan.md](/abs/path/c:/Users/toeri/source/repos/telemetry-tracker/agent/specs/plan.md)
-- [agent/skills/README.md](/abs/path/c:/Users/toeri/source/repos/telemetry-tracker/agent/skills/README.md)
-- [agent/plan.md](/abs/path/c:/Users/toeri/source/repos/telemetry-tracker/agent/plan.md)
-- [Features/TelemetryStatus/GetTelemetryStatusHandler.cs](/abs/path/c:/Users/toeri/source/repos/telemetry-tracker/Features/TelemetryStatus/GetTelemetryStatusHandler.cs)
-- [Features/TelemetryStatus/GetTelemetryDebugHandler.cs](/abs/path/c:/Users/toeri/source/repos/telemetry-tracker/Features/TelemetryStatus/GetTelemetryDebugHandler.cs)
-- [Program.cs](/abs/path/c:/Users/toeri/source/repos/telemetry-tracker/Program.cs)
-- [Telemetry/Lmu/LmuTelemetryBackgroundService.cs](/abs/path/c:/Users/toeri/source/repos/telemetry-tracker/Telemetry/Lmu/LmuTelemetryBackgroundService.cs)
-- [Telemetry/Lmu/LmuTelemetryProvider.cs](/abs/path/c:/Users/toeri/source/repos/telemetry-tracker/Telemetry/Lmu/LmuTelemetryProvider.cs)
-- [Telemetry/Lmu/Interop/LmuInteropModels.cs](/abs/path/c:/Users/toeri/source/repos/telemetry-tracker/Telemetry/Lmu/Interop/LmuInteropModels.cs)
+- [AI agent guide](./AGENTS.md)
+- [Agent documentation map](./agent/README.md)
+- [Current project state](./agent/current.md)
+- [Current implementation plan](./agent/plans/current.md)
+- [Product specification](./agent/specs/product.md)
+- [Architecture specification](./agent/specs/architecture.md)
+- [Telemetry status handler](./Features/TelemetryStatus/GetTelemetryStatusHandler.cs)
+- [Telemetry debug handler](./Features/TelemetryStatus/GetTelemetryDebugHandler.cs)
+- [Application entry point](./Program.cs)
+- [LMU background service](./Telemetry/Lmu/LmuTelemetryBackgroundService.cs)
+- [LMU telemetry provider](./Telemetry/Lmu/LmuTelemetryProvider.cs)
+- [LMU interop models](./Telemetry/Lmu/Interop/LmuInteropModels.cs)
 
 ## LMU SDK Rules
 
@@ -263,8 +260,7 @@ Branching rule for implementation chats:
 
 ## Developer Notes
 
-- Keep `agent/plan.md` updated when scope or architecture changes.
-- Keep `agent/` and `agent/specs/` aligned when the project direction changes.
+- Follow the ownership and update matrix in `AGENTS.md`; avoid copying canonical context between documents.
 - New user-facing behaviour should prefer `Features/{FeatureName}` slices with explicit handlers and thin CLI/TUI adapters.
 - Stable JSON CLI operations are the initial integration boundary for skills; later MCP and HTTP adapters should reuse the same handlers.
 - Prefer adding new behavior behind the existing provider/service boundary instead of pushing Win32 concerns into CLI/TUI adapters.

@@ -15,8 +15,8 @@ Make the branch and draft pull request—not a local Codex transcript—the tran
 4. Push the task branch.
 5. Create or update its draft pull request.
 6. Add a PR comment headed `## HANDOFF` using the repository pull-request template fields.
-7. Update `agent/progress.md` only when repository-level delivery state changed.
-8. Update `agent/decisions.md` only when a durable decision was made.
+7. Update `agent/current.md` only when repository-level delivery state changed.
+8. Update `agent/decisions.md` and its index only when a durable decision was made.
 
 Do not leave essential work only in an uncommitted diff, local worktree, or chat transcript. Do not claim incomplete or failing work is ready for review.
 
@@ -32,7 +32,7 @@ The handoff must identify:
 
 ## When Resuming
 
-1. Read `agent/entry-point.md` and its required project context.
+1. Read `AGENTS.md`, then load the context it routes for the task.
 2. Read the task issue, draft PR description, and latest `## HANDOFF` comment.
 3. Fetch the branch and create or attach a dedicated worktree.
 4. Inspect the real commit history, diff, and worktree state; do not trust the handoff without verification.

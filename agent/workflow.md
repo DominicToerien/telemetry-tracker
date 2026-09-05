@@ -57,14 +57,16 @@ If the chat is intended to be planning-only, use the `agent/skills/pm-chat.md` s
 
 ### 2. Generate Execution Plan
 
-- Refine `agent/plan.md` only when roadmap or phase sequencing changes.
-- For an ordinary change, use the compact contract from the change workflow instead of creating another plan document.
+- Create or refine `agent/plans/current.md` when the active slice changes or needs a durable, asynchronously reviewable contract.
+- For an ordinary bounded change, use the compact contract from the change workflow instead of creating another plan document.
+- Update `agent/plans/roadmap.md` only when future sequencing changes.
+- Use `agent/plan.md` only as a detailed historical design reference.
 - Do not mirror the same task plan into multiple repository documents.
 
 ### 2.5. Maintain Decision and Progress Context
 
-- Record meaningful architecture and scope decisions in `agent/decisions.md`
-- Keep the current delivery snapshot in `agent/progress.md`
+- Record durable architecture and scope decisions in `agent/decisions.md` and update `agent/decisions/README.md`.
+- Keep the current delivery snapshot in `agent/current.md`.
 - Update both in the same task when relevant changes are made
 
 ### 3. Execute in Vertical Slices
@@ -88,8 +90,8 @@ After each step:
 - simplify where necessary
 - remove unnecessary abstractions
 - ensure alignment with architecture
-- update `agent/progress.md` if the current state changed
-- update `agent/decisions.md` if a meaningful decision was made or revised
+- update `agent/current.md` if verified repository-level state changed
+- update the decision log and index if a durable decision was made or revised
 - update the draft PR handoff before transferring incomplete work to another session or environment
 - verify the implementation against both repository standards and the agreed change contract
 
