@@ -12,7 +12,8 @@ public sealed record TrackingTelemetryFrame(
     double Rpm,
     double PositionX,
     double PositionY,
-    double PositionZ);
+    double PositionZ,
+    string? CarIdentifier = null);
 
 public sealed record TrackingStatus(
     bool IsActive,
@@ -51,7 +52,8 @@ public sealed record CapturedLap(
     int GearChanges,
     int TopGear,
     int LowestGear,
-    IReadOnlyList<LapTraceSample> Trace);
+    IReadOnlyList<LapTraceSample> Trace,
+    string? CarIdentifier = null);
 
 public interface ITrackingControl
 {

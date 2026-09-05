@@ -84,11 +84,18 @@ public sealed class SetupRevisionStore(IDbContextFactory<TelemetryTrackerDbConte
         var sourceRevision = await db.SetupRevisions.AsNoTracking()
             .SingleOrDefaultAsync(item => item.Id == command.SourceRevisionId, cancellationToken);
         if (sourceRevision is null) return new(null, [], "Source setup revision was not found.");
-        if (!await db.LapSummaries.AnyAsync(
-                lap => lap.Id == command.SourceLapId && lap.SessionId == sourceRevision.SessionId,
-                cancellationToken))
+        var sourceLap = await db.LapSummaries.AsNoTracking()
+            .Where(lap => lap.Id == command.SourceLapId && lap.SessionId == sourceRevision.SessionId)
+            .Select(lap => new { lap.Id, VehicleName = lap.Session!.VehicleName })
+            .SingleOrDefaultAsync(cancellationToken);
+        if (sourceLap is null)
         {
             return new(null, [], "Source lap was not found in the baseline setup's session.");
+        }
+        if (string.IsNullOrWhiteSpace(sourceRevision.CarIdentifier) ||
+            !string.Equals(sourceLap.VehicleName, sourceRevision.CarIdentifier, StringComparison.Ordinal))
+        {
+            return new(null, [], $"Source lap car '{sourceLap.VehicleName ?? "<missing>"}' does not exactly match setup car '{sourceRevision.CarIdentifier ?? "<missing>"}'.");
         }
 
         var storedSource = TryReadStoredSvm(sourceRevision);

@@ -8,6 +8,7 @@ public sealed class TrackingCaptureService : ITrackingControl
     private Guid? _sessionId;
     private DateTimeOffset? _startedAtUtc;
     private int? _currentLapNumber;
+    private string? _carIdentifier;
     private bool _currentLapStartedAtBoundary;
     private DateTimeOffset? _lastSampleAtUtc;
     private int _completedLapCount;
@@ -24,6 +25,7 @@ public sealed class TrackingCaptureService : ITrackingControl
             _sessionId = Guid.NewGuid();
             _startedAtUtc = startedAtUtc;
             _currentLapNumber = null;
+            _carIdentifier = null;
             _currentLapStartedAtBoundary = false;
             _lastSampleAtUtc = null;
             _currentLapFrames.Clear();
@@ -39,6 +41,7 @@ public sealed class TrackingCaptureService : ITrackingControl
             _sessionId = null;
             _startedAtUtc = null;
             _currentLapNumber = null;
+            _carIdentifier = null;
             _currentLapStartedAtBoundary = false;
             _lastSampleAtUtc = null;
             _currentLapFrames.Clear();
@@ -62,6 +65,20 @@ public sealed class TrackingCaptureService : ITrackingControl
             {
                 return null;
             }
+
+            if (_carIdentifier is not null && frame.CarIdentifier is not null &&
+                !string.Equals(_carIdentifier, frame.CarIdentifier, StringComparison.Ordinal))
+            {
+                _sessionId = Guid.NewGuid();
+                _startedAtUtc = frame.CapturedAtUtc;
+                _currentLapNumber = null;
+                _currentLapStartedAtBoundary = false;
+                _lastSampleAtUtc = null;
+                _currentLapFrames.Clear();
+                _completedLapCount = 0;
+            }
+
+            _carIdentifier ??= frame.CarIdentifier;
 
             if (_currentLapNumber is null)
             {
@@ -152,7 +169,8 @@ public sealed class TrackingCaptureService : ITrackingControl
             gearChanges,
             frames.Max(static frame => frame.Gear),
             frames.Min(static frame => frame.Gear),
-            trace);
+            trace,
+            _carIdentifier);
     }
 
     private TrackingStatus CreateStatus() => new(

@@ -22,7 +22,7 @@ public sealed class CliCommandRunnerTests : IDisposable
         _options = new DbContextOptionsBuilder<TelemetryTrackerDbContext>().UseSqlite($"Data Source={_databasePath}").Options;
         using var db = new TelemetryTrackerDbContext(_options);
         db.Database.EnsureCreated();
-        db.Sessions.Add(new SessionRecord { Id = _sessionId, StartedAtUtc = new DateTimeOffset(2026, 8, 30, 9, 0, 0, TimeSpan.Zero), TrackName = "Spa", VehicleName = "Porsche" });
+        db.Sessions.Add(new SessionRecord { Id = _sessionId, StartedAtUtc = new DateTimeOffset(2026, 8, 30, 9, 0, 0, TimeSpan.Zero), TrackName = "Spa", VehicleName = BmwM4SetupModifier.CarIdentifier });
         db.LapSummaries.Add(new LapSummaryRecord
         {
             Id = _lapId,
@@ -127,6 +127,35 @@ public sealed class CliCommandRunnerTests : IDisposable
         Assert.Contains("rear instability", proposal.Rationale, StringComparison.Ordinal);
         var stored = JsonSerializer.Deserialize<StoredSvmSetup>(proposal.SetupValuesJson);
         Assert.Contains("RWSetting=11//4.6 deg", System.Text.Encoding.Latin1.GetString(Convert.FromBase64String(stored!.RawContentBase64)));
+    }
+
+    [Fact]
+    public async Task SetupModify_RejectsLapWhoseRecordedCarDoesNotExactlyMatchBaseline()
+    {
+        await using (var db = new TelemetryTrackerDbContext(_options))
+        {
+            var session = await db.Sessions.SingleAsync();
+            session.VehicleName = "Porsche";
+            await db.SaveChangesAsync();
+        }
+        var fixturePath = Path.GetFullPath(Path.Combine(
+            AppContext.BaseDirectory, "..", "..", "..", "..", "references", "lmu-setups", "bmw-m4-lmgt3", "monza-mid-df.svm"));
+        var store = new SetupRevisionStore(new TestDbContextFactory(_options));
+        var imported = await store.ImportBaselineAsync(new ImportSetupBaselineCommand(_sessionId, fixturePath), CancellationToken.None);
+
+        var result = await RunAsync(
+            CreateRunner(),
+            "setup", "modify",
+            "--source", imported.Baseline!.Id.ToString(),
+            "--lap", _lapId.ToString(),
+            "--name", "invalid-cross-car",
+            "--feedback", "rear instability",
+            "--set", "RWSetting=11",
+            "--json");
+
+        Assert.Contains("does not exactly match", result.RootElement.GetProperty("error").GetString(), StringComparison.Ordinal);
+        await using var verification = new TelemetryTrackerDbContext(_options);
+        Assert.DoesNotContain(await verification.SetupRevisions.ToListAsync(), item => item.Status == "proposal");
     }
 
     public void Dispose()

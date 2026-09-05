@@ -1,4 +1,5 @@
 using telemetry_tracker.Features.Tracking;
+using telemetry_tracker.Features.Setups;
 
 namespace telemetry_tracker.Tests;
 
@@ -51,6 +52,7 @@ public sealed class TrackingCaptureServiceTests
         Assert.Equal(1, completed.GearChanges);
         Assert.Equal(4, completed.TopGear);
         Assert.Equal(3, completed.LowestGear);
+        Assert.Equal(BmwM4SetupModifier.CarIdentifier, completed.CarIdentifier);
         Assert.Equal(1, service.GetStatus().CompletedLapCount);
         Assert.Equal(1, service.GetStatus().BufferedSampleCount);
     }
@@ -88,6 +90,26 @@ public sealed class TrackingCaptureServiceTests
         Assert.Equal(0, service.GetStatus().CompletedLapCount);
     }
 
+    [Fact]
+    public void Observe_StartsNewSessionAndDiscardsPartialLapWhenCarChanges()
+    {
+        var service = new TrackingCaptureService();
+        var start = DateTimeOffset.UtcNow;
+        var firstSession = service.Start(start).SessionId;
+        service.Observe(Frame(start, 1, 20, 180, .8, 0, 0, 5));
+
+        var changedCarFrame = Frame(start.AddSeconds(1), 2, 0, 100, .2, 0, 0, 2) with
+        {
+            CarIdentifier = "Porsche_992_GT3_R GT3 WEC2025"
+        };
+        Assert.Null(service.Observe(changedCarFrame));
+
+        var status = service.GetStatus();
+        Assert.NotEqual(firstSession, status.SessionId);
+        Assert.Equal(0, status.CompletedLapCount);
+        Assert.Equal(0, status.BufferedSampleCount);
+    }
+
     private static TrackingTelemetryFrame Frame(
         DateTimeOffset capturedAtUtc,
         int lapNumber,
@@ -108,5 +130,6 @@ public sealed class TrackingCaptureServiceTests
             8000,
             1,
             2,
-            3);
+            3,
+            BmwM4SetupModifier.CarIdentifier);
 }

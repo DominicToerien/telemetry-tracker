@@ -21,9 +21,14 @@ public sealed class LocalLapStore(IDbContextFactory<TelemetryTrackerDbContext> d
             session = new SessionRecord
             {
                 Id = lap.SessionId,
-                StartedAtUtc = lap.StartedAtUtc
+                StartedAtUtc = lap.StartedAtUtc,
+                VehicleName = lap.CarIdentifier
             };
             dbContext.Sessions.Add(session);
+        }
+        else if (session.VehicleName is null && lap.CarIdentifier is not null)
+        {
+            session.VehicleName = lap.CarIdentifier;
         }
 
         if (await dbContext.LapSummaries.AnyAsync(existing => existing.SessionId == lap.SessionId && existing.LapNumber == lap.LapNumber, cancellationToken))

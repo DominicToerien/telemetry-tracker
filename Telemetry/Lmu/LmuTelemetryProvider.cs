@@ -159,7 +159,8 @@ public sealed class LmuTelemetryProvider : ITelemetryStatusQueries
                 telemetry.mEngineRPM,
                 telemetry.mPos.x,
                 telemetry.mPos.y,
-                telemetry.mPos.z);
+                telemetry.mPos.z,
+                GetCarIdentifier(telemetry));
         }
     }
 
@@ -303,4 +304,23 @@ public sealed class LmuTelemetryProvider : ITelemetryStatusQueries
 
     private static string? TrimSdkString(string? value) =>
         string.IsNullOrWhiteSpace(value) ? null : value.TrimEnd('\0', ' ');
+
+    private static string? GetCarIdentifier(TelemInfoV01 telemetry)
+    {
+        var model = TrimSdkString(telemetry.mVehicleModel);
+        var vehicleClass = telemetry.mVehicleClass switch
+        {
+            IP_VehicleClass.GT3 => "GT3",
+            _ => null
+        };
+        var championship = telemetry.mVehicleChampionship switch
+        {
+            IP_VehicleChampionship.WEC_2025 => "WEC2025",
+            _ => null
+        };
+
+        return model is null || vehicleClass is null || championship is null
+            ? null
+            : $"{model} {vehicleClass} {championship}";
+    }
 }

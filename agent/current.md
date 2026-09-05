@@ -20,6 +20,7 @@ Telemetry Tracker is a runnable standalone .NET Generic Host console application
 - Validates terminal session/lap navigation and accepts quoted paths containing spaces.
 - Discovers, losslessly imports, versions, browses, and compares LMU `.svm` setup baselines by exact car identifier.
 - Creates versioned BMW M4 LMGT3 proposals for six validated setup settings, tied to a source lap and driver feedback.
+- Derives exact car identity from LMU's vehicle-model, class, and championship telemetry and separates tracking sessions when that identity changes.
 - Preserves all source bytes outside intended setting lines, including legacy single-byte content, and rejects unsupported cars, fields, values, encodings, and no-op changes.
 - Includes focused tests for interop, tracking, persistence, CLI, and setup-baseline behavior.
 
