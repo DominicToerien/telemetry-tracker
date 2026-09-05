@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Data.Sqlite;
 using telemetry_tracker.Features.Laps;
+using telemetry_tracker.Features.Setups;
 using telemetry_tracker.Features.Tracking;
 using telemetry_tracker.Infrastructure.Persistence;
 
@@ -32,6 +33,7 @@ public sealed class LocalLapStoreTests : IDisposable
         var summary = await dbContext.LapSummaries.Include(item => item.Trace).SingleAsync();
 
         Assert.Equal(lap.SessionId, session.Id);
+        Assert.Equal(BmwM4SetupModifier.CarIdentifier, session.VehicleName);
         Assert.Equal(lap.LapNumber, summary.LapNumber);
         Assert.Equal(2, summary.SampleCount);
         Assert.NotNull(summary.Trace);
@@ -68,7 +70,8 @@ public sealed class LocalLapStoreTests : IDisposable
         [
             new LapTraceSample(0, 120, 0.5, 0, 0, 4, 7000, 1, 2, 3),
             new LapTraceSample(0.1, 125, 0.6, 0, 0.1, 4, 7100, 4, 5, 6)
-        ]);
+        ],
+        BmwM4SetupModifier.CarIdentifier);
 
     private sealed class TestDbContextFactory(DbContextOptions<TelemetryTrackerDbContext> options) : IDbContextFactory<TelemetryTrackerDbContext>
     {

@@ -7,6 +7,8 @@ public sealed record SvmSetting(string? Section, string Name, string Value, stri
 
 public sealed class SvmSetupDocument
 {
+    private static readonly UTF8Encoding StrictUtf8 = new(encoderShouldEmitUTF8Identifier: false, throwOnInvalidBytes: true);
+
     private SvmSetupDocument(byte[] originalBytes, string sourceText, string? vehicleClassSetting, IReadOnlyList<SvmSetting> settings)
     {
         OriginalBytes = originalBytes;
@@ -30,7 +32,7 @@ public sealed class SvmSetupDocument
     public static SvmSetupDocument Parse(byte[] originalBytes)
     {
         ArgumentNullException.ThrowIfNull(originalBytes);
-        var sourceText = Encoding.UTF8.GetString(originalBytes).TrimStart('\uFEFF');
+        var sourceText = DecodeSourceText(originalBytes).TrimStart('\uFEFF');
 
         var settings = new List<SvmSetting>();
         string? section = null;
@@ -68,6 +70,18 @@ public sealed class SvmSetupDocument
         }
 
         return new SvmSetupDocument(originalBytes.ToArray(), sourceText, vehicleClassSetting, settings);
+    }
+
+    private static string DecodeSourceText(byte[] originalBytes)
+    {
+        try
+        {
+            return StrictUtf8.GetString(originalBytes);
+        }
+        catch (DecoderFallbackException)
+        {
+            return Encoding.Latin1.GetString(originalBytes);
+        }
     }
 
     public static async Task<SvmSetupDocument> ReadAsync(string filePath, CancellationToken cancellationToken)

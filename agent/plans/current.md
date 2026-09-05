@@ -1,15 +1,16 @@
-# Current Plan: Car-Specific Setup Modification
+# Current Plan: BMW M4 LMGT3 Setup Modification
 
 ## Outcome
 
-Enable the first safe setup modification only after validating supported settings and lossless LMU `.svm` round trips for a specific car.
+Enable safe, versioned setup proposals for the exact LMU car identifier `BMW_M4_LMGT3 GT3 WEC2025`.
 
 ## In scope
 
-- Select one exact LMU car identifier with representative baseline fixtures.
-- Define and validate the supported setting names, value domains, and encoded representation for that car.
+- Retain representative BMW M4 LMGT3 baseline fixtures with source provenance.
+- Validate the observed encoded pairs for rear wing, rear anti-roll bar, brake bias, and the three traction-control maps.
 - Modify only explicitly supported values while preserving source bytes, comments, ordering, and unknown fields.
 - Parse the emitted setup again and verify a lossless round trip outside the intended changes.
+- Tie every proposal to its immutable baseline, source lap, and driver feedback.
 - Add focused tests for validation, rejection, preservation, and deterministic output.
 
 ## Out of scope
@@ -22,7 +23,7 @@ Enable the first safe setup modification only after validating supported setting
 
 ## Acceptance criteria
 
-- Unsupported cars, fields, and values are rejected without writing output.
+- Unsupported cars, fields, values, source encodings, and no-op changes are rejected without creating a proposal.
 - A supported change preserves every byte or parsed element outside the intended setting edits.
 - Emitted setups parse successfully and retain the exact car identifier and source provenance.
 - The application builds and focused setup tests pass.

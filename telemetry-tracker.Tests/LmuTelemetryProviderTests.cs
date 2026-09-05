@@ -1,5 +1,6 @@
 using telemetry_tracker.Telemetry.Lmu;
 using telemetry_tracker.Telemetry.Lmu.Interop;
+using telemetry_tracker.Features.Setups;
 
 namespace telemetry_tracker.Tests;
 
@@ -123,6 +124,9 @@ public sealed class LmuTelemetryProviderTests
         snapshot.telemetry.telemInfo[0].mFilteredSteering = -0.1;
         snapshot.telemetry.telemInfo[0].mGear = 5;
         snapshot.telemetry.telemInfo[0].mEngineRPM = 7800;
+        snapshot.telemetry.telemInfo[0].mVehicleModel = "BMW_M4_LMGT3";
+        snapshot.telemetry.telemInfo[0].mVehicleClass = IP_VehicleClass.GT3;
+        snapshot.telemetry.telemInfo[0].mVehicleChampionship = IP_VehicleChampionship.WEC_2025;
         snapshot.telemetry.telemInfo[0].mPos = new TelemVect3 { x = 12, y = 3, z = -44 };
         snapshot.telemetry.telemInfo[0].mLocalVel = new TelemVect3 { z = 50 };
         var capturedAt = new DateTimeOffset(2026, 8, 29, 10, 0, 0, TimeSpan.Zero);
@@ -143,6 +147,7 @@ public sealed class LmuTelemetryProviderTests
         Assert.Equal(12, frame.PositionX);
         Assert.Equal(3, frame.PositionY);
         Assert.Equal(-44, frame.PositionZ);
+        Assert.Equal(BmwM4SetupModifier.CarIdentifier, frame.CarIdentifier);
     }
 
     private static SharedMemoryObjectOut CreateSnapshot() =>

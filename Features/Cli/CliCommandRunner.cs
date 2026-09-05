@@ -36,8 +36,9 @@ public sealed class CliCommandRunner(
             "setup" when args.ElementAtOrDefault(1) == "import" => await ImportBaselineAsync(args, cancellationToken),
             "setup" when args.ElementAtOrDefault(1) == "show" => await ShowSetupAsync(args, cancellationToken),
             "setup" when args.ElementAtOrDefault(1) == "compare" => await CompareSetupsAsync(args, cancellationToken),
+            "setup" when args.ElementAtOrDefault(1) == "modify" => await ModifySetupAsync(args, cancellationToken),
             "setup" when args.ElementAtOrDefault(1) == "propose" && Guid.TryParse(GetOption(args, "--session"), out var proposalSessionId) => await CreateProposalAsync(args, proposalSessionId, cancellationToken),
-            _ => new { error = "Unknown command.", usage = "sessions list | sessions show <id> | laps list --session <id> | laps show <id> | telemetry show --lap <id> | laps compare <id> <id> | telemetry status | tracking status | setup files list --root <path> | setup import --session <id> --file <path> | setup list --session <id> | setup show <id> | setup compare <id> <id>" }
+            _ => new { error = "Unknown command.", usage = "sessions list | sessions show <id> | laps list --session <id> | laps show <id> | telemetry show --lap <id> | laps compare <id> <id> | telemetry status | tracking status | setup files list --root <path> | setup import --session <id> --file <path> | setup list --session <id> | setup show <id> | setup compare <id> <id> | setup modify --source <id> --lap <id> --name <name> --feedback <text> --set <setting=value>" }
         };
 
         await output.WriteLineAsync(JsonSerializer.Serialize(result, JsonOptions));
@@ -103,6 +104,35 @@ public sealed class CliCommandRunner(
         var secondId = GetGuidArgument(args, 3);
         if (firstId is null || secondId is null) return new { error = "Two valid setup revision IDs are required." };
         return (object?)await setups.CompareAsync(firstId.Value, secondId.Value, cancellationToken) ?? new { error = "Both revisions must be LMU baselines for the same exact car." };
+    }
+
+    private async Task<object> ModifySetupAsync(string[] args, CancellationToken cancellationToken)
+    {
+        var sourceId = GetGuidOption(args, "--source");
+        if (sourceId is null) return new { error = "--source must be a valid setup revision ID." };
+        var lapId = GetGuidOption(args, "--lap");
+        if (lapId is null) return new { error = "--lap must be a valid source lap ID." };
+        var name = GetOption(args, "--name");
+        if (string.IsNullOrWhiteSpace(name)) return new { error = "--name is required." };
+        var feedback = GetOption(args, "--feedback");
+        if (string.IsNullOrWhiteSpace(feedback)) return new { error = "--feedback is required." };
+
+        var changes = new List<SetupSettingChange>();
+        for (var index = 0; index < args.Length; index++)
+        {
+            if (!args[index].Equals("--set", StringComparison.Ordinal) || index + 1 >= args.Length) continue;
+            var assignment = args[++index];
+            var equalsIndex = assignment.IndexOf('=');
+            if (equalsIndex <= 0 || equalsIndex == assignment.Length - 1)
+            {
+                return new { error = $"Invalid setting assignment '{assignment}'. Expected SettingName=value." };
+            }
+
+            changes.Add(new SetupSettingChange(assignment[..equalsIndex], assignment[(equalsIndex + 1)..]));
+        }
+
+        var result = await setups.CreateModificationAsync(new CreateSetupModificationCommand(sourceId.Value, lapId.Value, name, feedback, changes), cancellationToken);
+        return result.Error is null ? new { proposal = result.Proposal!, changes = result.Changes } : new { error = result.Error };
     }
 
     private static string? GetOption(string[] args, string option) => args.SkipWhile(arg => arg != option).Skip(1).FirstOrDefault();
